@@ -1,0 +1,9 @@
+name: ruqqus.dart
+description: A powerful Dart library for interacting with the Ruqqus API.
+version: 0.0
+
+environment:
+  sdk: '>=2.8.1 <3.0.0'
+
+dependencies:
+  eventify: ^0.1.4
