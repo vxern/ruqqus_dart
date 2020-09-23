@@ -32,14 +32,10 @@ class Client extends EventEmitter {
   /// To maintain ongoing access, you will need to use the refresh token to obtain a new access token."
   void getToken() async {
     Response response = await dio.post(grant_url,
-        data: fetchKeys,
-        options: Options(headers: {
-          'User-Agent': user_agent,
-          'Authorization': 'Bearer $client_id'
-        }));
+        data: fetchKeys, options: Options(headers: {'User-Agent': user_agent}));
 
     // If the request is not '200 - OK'
-    if (response.statusCode != 200) {
+    if (!(response.statusCode >= 200 && response.statusCode <= 299)) {
       throwError('${response.statusCode} - ${response.statusMessage}');
       sleep(Duration(seconds: 10));
       exit;
