@@ -1,7 +1,7 @@
 import 'package:ansicolor/ansicolor.dart';
 import 'package:intl/intl.dart';
 
-enum Severity { Debug, Info, Warning, Error }
+enum Severity { Debug, Success, Info, Warning, Error }
 
 final timeFormat = DateFormat.Hms();
 
@@ -12,6 +12,9 @@ void log(Severity severity, String message) async {
     case Severity.Debug:
       if (severity == Severity.Debug) return;
       pen = AnsiPen()..gray();
+      break;
+    case Severity.Success:
+      pen = AnsiPen()..green();
       break;
     case Severity.Info:
       pen = AnsiPen()..white();
