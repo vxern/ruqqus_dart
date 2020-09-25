@@ -63,8 +63,7 @@ class Client {
 
   void submit(String targetBoard, String title, String body) async {
     Response response = await API.Post(
-        '${API.website_link}/${API.api_path}/submit',
-        {'board': targetBoard, 'title': title, 'body': body});
+        'submit', {'board': targetBoard, 'title': title, 'body': body});
 
     if (response.data['guild_name'] == 'general' && targetBoard != 'general') {
       throwWarning(
@@ -72,6 +71,12 @@ class Client {
       return;
     }
 
-    streamController.add('submitted');
+    log(Severity.Success, 'Post submitted.');
+  }
+
+  void comment(String parent, String title, String body) async {
+    await API.Post('comment', {'parent_full': 't2_$parent', 'body': body});
+
+    log(Severity.Success, 'Comment submitted.');
   }
 }

@@ -17,7 +17,7 @@ class API {
 
   static Future<Response> Post(String path, Map<String, dynamic> data,
       [Map<String, dynamic> headers]) async {
-    return await dio.post(path,
+    return await dio.post('$website_link/$api_path/$path',
         data: FormData.fromMap(data),
         options: Options(
             // If no headers have been provided, the access token is used instead
