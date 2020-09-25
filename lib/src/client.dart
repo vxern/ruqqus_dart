@@ -1,69 +1,77 @@
+import 'dart:async';
 import 'dart:io';
 
-import 'package:eventify/eventify.dart';
 import 'package:dio/dio.dart';
 
+import 'API.dart';
 import 'logger.dart';
 
-class Client extends EventEmitter {
-  static const String website_link = "https://ruqqus.com";
-  static const String grant_url = '$website_link/grant';
-
-  Dio dio = Dio();
-
+class Client {
+  // HTTP Request Data
   Map<String, dynamic> requestData;
-  Map<String, bool> scopes;
-  DateTime nextRefresh;
+
+  // Events
+  final StreamController streamController = StreamController.broadcast();
+
+  // Controls
+  final String user_agent;
+  static String access_token;
   bool isOnline;
 
-  Client(client_id, String client_secret, String code, String user_agent) {
+  Client(client_id, String client_secret, String code, this.user_agent) {
     requestData = {
       'client_id': client_id,
       'client_secret': client_secret,
-      'grant_type': 'code',
-      'code': code ?? null,
-      'user_agent': user_agent
+      'grant_type': 'refresh',
+      'refresh_token': code ?? null
     };
 
-    () async => await _getToken();
+    getToken();
   }
 
   /// Ruqqus: "Access tokens expire one hour after they are issued.
   /// To maintain ongoing access, you will need to use the refresh token to obtain a new access token."
-  void _getToken() async {
+  void getToken() async {
     Response response;
 
-    // Make a ruqquest to Ruqqus
-    response = await dio.post(grant_url,
-        data: FormData.fromMap(requestData),
-        options: Options(headers: {
-          'User-Agent': requestData['user_agent'],
-          'X-Poster-Type': 'bot'
-        }));
-
-    // If not successful, print the error.
-    if (!(response.statusCode >= 200 && response.statusCode <= 299)) {
-      throwError('${response.statusCode} - ${response.statusMessage}');
-      sleep(Duration(seconds: 10));
-      exit;
+    try {
+      // Make a ruqquest to Ruqqus
+      response = await API.Post(
+          API.grant_url, requestData, {'User-Agent': user_agent});
+    } on DioError catch (e) {
+      // If not successful, print the error.
+      if (!(e.response.statusCode >= 200 && e.response.statusCode <= 299)) {
+        throwError('${e.response.statusCode} - ${e.response.statusMessage}');
+        sleep(Duration(seconds: 10));
+        exit;
+      }
     }
 
-    log(Severity.Debug, response.data.toString());
     // Build next ruqquest
-    requestData['access_token'] = response.data['access_token'];
     requestData['refresh_token'] = response.data['refresh_token'];
-    nextRefresh = DateTime.parse(response.data[
-        'expires_at']); // I'll work out how to set the time back by 5 seconds later
+    access_token = response.data['access_token'];
 
     // Set up client
-    if (requestData['grant_type'] == 'code') {
-      requestData['grant_type'] = 'refresh';
+    //if (requestData['grant_type'] == 'code') {
+    requestData['grant_type'] = 'refresh';
+    requestData.remove('code');
 
-      // Enable the scopes defined in the response
-      response.data.forEach((scope) => {scopes['scope'] = true});
+    isOnline = true;
+    streamController.add('ready');
+    //}
+  }
 
-      isOnline = true;
-      emit('ready');
+  void submit(String targetBoard, String title, String body) async {
+    Response response = await API.Post(
+        '${API.website_link}/${API.api_path}/submit',
+        {'board': targetBoard, 'title': title, 'body': body});
+
+    if (response.data['guild_name'] == 'general' && targetBoard != 'general') {
+      throwWarning(
+          'As the guild name you provided is not valid, the post has been submitted to +general.');
+      return;
     }
+
+    streamController.add('submitted');
   }
 }

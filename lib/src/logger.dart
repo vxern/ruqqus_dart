@@ -36,3 +36,7 @@ void log(Severity severity, String message) async {
 void throwError(String message) {
   log(Severity.Error, message);
 }
+
+void throwWarning(String message) {
+  log(Severity.Warning, message);
+}

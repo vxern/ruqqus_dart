@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 
+import '../ruqqus.dart';
+
 // HTTP Requests
 final Dio dio = Dio();
 
@@ -14,8 +16,13 @@ class API {
   }
 
   static Future<Response> Post(String path, Map<String, dynamic> data,
-      Map<String, dynamic> headers) async {
+      [Map<String, dynamic> headers]) async {
     return await dio.post(path,
-        data: FormData.fromMap(data), options: Options(headers: headers));
+        data: FormData.fromMap(data),
+        options: Options(
+            // If no headers have been provided, the access token is used instead
+            headers: headers == null
+                ? {'Authorization': 'Bearer ${Client.access_token}'}
+                : headers));
   }
 }

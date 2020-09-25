@@ -8,6 +8,5 @@ environment:
 dependencies:
   ansicolor: ^1.0.5
   dio: ^3.0.10
-  eventify: ^0.1.4
   intl: ^0.16.1
 
