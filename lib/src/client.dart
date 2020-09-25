@@ -13,7 +13,7 @@ class Client {
   final StreamController streamController = StreamController.broadcast();
 
   // Controls
-  bool isReady;
+  bool isReady = false;
 
   Client(client_id, String client_secret, String code, user_agent) {
     requestData = {

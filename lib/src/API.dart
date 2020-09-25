@@ -71,11 +71,11 @@ class API {
 
       client.isReady = true;
       client.streamController.add('ready');
-
-      Future.delayed(Duration(minutes: 5), () {
-        obtainToken();
-      });
     }
+
+    Future.delayed(Duration(minutes: 5), () {
+      obtainToken();
+    });
   }
 
   // POST
@@ -116,33 +116,35 @@ class API {
   /// Upvote/downvote, isUp:true = upvote, isUp:false = downvote, isUp:null = remove vote
   Future<Response> vote(Type type, String target, bool isUp) async {
     Response response = await Post(
-        'vote/${type == Type.Post ? 'post' : 'comment'}/$target/${isUp == null ? 0 : (isUp ? 1 : -1)}');
+        'vote/${type == PostType.Post ? 'post' : 'comment'}/$target/${isUp == null ? 0 : (isUp ? 1 : -1)}');
 
     log(
         Severity.Success,
         (isUp == null
                 ? 'Removed vote from '
                 : (isUp ? 'Upvoted ' : 'Downvoted ')) +
-            '${type == Type.Post ? 'post' : 'comment'}.');
+            '${type == PostType.Post ? 'post' : 'comment'}.');
     return response;
   }
 
   /// Edit post/comment and supplant body with the provided body
-  Future<Response> edit(Type type, String id, String body) async {
+  Future<Response> edit(PostType type, String id, String body) async {
     Response response = await Post(
-        '${type == Type.Post ? 'edit_post' : 'edit_comment'}/$id',
+        '${type == PostType.Post ? 'edit_post' : 'edit_comment'}/$id',
         {'body': body});
 
-    log(Severity.Success, 'Edited ${type == Type.Post ? 'post' : 'comment'}.');
+    log(Severity.Success,
+        'Edited ${type == PostType.Post ? 'post' : 'comment'}.');
     return response;
   }
 
   /// Delete post/comment
-  Future<Response> delete(Type type, String id) async {
+  Future<Response> delete(PostType type, String id) async {
     Response response = await Post(
-        type == Type.Post ? 'delete_post/$id' : 'delete/comment/$id');
+        type == PostType.Post ? 'delete_post/$id' : 'delete/comment/$id');
 
-    log(Severity.Success, 'Deleted ${type == Type.Post ? 'post' : 'comment'}.');
+    log(Severity.Success,
+        'Deleted ${type == PostType.Post ? 'post' : 'comment'}.');
     return response;
   }
 
@@ -151,4 +153,4 @@ class API {
   // None yet...
 }
 
-enum Type { Post, Comment }
+enum PostType { Post, Comment }
