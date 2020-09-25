@@ -1,8 +1,9 @@
-A powerful Dart library for interacting with the Ruqqus API.
+# Ruqqus.dart
+##### A powerful Dart library for interacting with the Ruqqus API.
 
-## Usage
+# Usage
 
-A simple usage example:
+##### A simple usage example:
 
 ```dart
 import 'package:ruqqus/ruqqus.dart';
