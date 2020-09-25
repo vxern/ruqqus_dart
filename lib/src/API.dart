@@ -113,14 +113,16 @@ class API {
     return response;
   }
 
-  /// Upvote/downvote, isUp:true = upvote, isUp:false = downvote
+  /// Upvote/downvote, isUp:true = upvote, isUp:false = downvote, isUp:null = remove vote
   Future<Response> vote(Type type, String target, bool isUp) async {
     Response response = await Post(
-        'vote/${type == Type.Post ? 'post' : 'comment'}/$target/${isUp ? 1 : -1}');
+        'vote/${type == Type.Post ? 'post' : 'comment'}/$target/${isUp == null ? 0 : (isUp ? 1 : -1)}');
 
     log(
         Severity.Success,
-        (isUp ? 'Upvoted ' : 'Downvoted ') +
+        (isUp == null
+                ? 'Removed vote from '
+                : (isUp ? 'Upvoted ' : 'Downvoted ')) +
             '${type == Type.Post ? 'post' : 'comment'}.');
     return response;
   }
