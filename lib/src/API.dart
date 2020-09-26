@@ -1,3 +1,5 @@
+// API.dart - Main file for interacting with the API
+
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -24,8 +26,17 @@ class API {
 
   API(this.client, this.requestData, this.user_agent);
 
-  Future<Response> Get(String path, Map<String, dynamic> headers) async {
-    return await dio.get(path, options: Options(headers: headers));
+  Future<Response> Get(String path, [Map<String, dynamic> headers]) async {
+    return await dio.get(
+        // Checks whether the path is an API path, or a URI of its own
+        path.contains('$website_link')
+            ? path
+            : '$website_link/$api_version/$path',
+        options: Options(
+            // If no headers have been provided, the access token is used instead
+            headers: {}
+              ..addAll(headers ?? {})
+              ..addAll({'Authorization': 'Bearer ${access_token}'})));
   }
 
   Future<Response> Post(String path,

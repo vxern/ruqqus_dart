@@ -1,3 +1,5 @@
+// logger.dart - Logging with colours and defined severity
+
 import 'package:ansicolor/ansicolor.dart';
 import 'package:intl/intl.dart';
 
