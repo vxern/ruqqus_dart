@@ -7,8 +7,10 @@ import '../logger.dart';
 import 'users.dart';
 import 'primary.dart';
 
-/// The post class. Comprises info about a post
-class Post extends Entity {
+/// The submission class. Comprises info about a post or comment
+class Submission extends Primary {
+  API api;
+
   Author author;
   Content content;
   Votes votes;
@@ -16,24 +18,31 @@ class Post extends Entity {
   SubmissionFlags flags;
   GuildName guild_name;
 
-  void obtainData(API api, String id) async {
-    Response response = await api.Get('post/$id', {'sort': 'top'});
+  void _obtainData(String id,
+      [Map<String, dynamic> suppliedData,
+      SubmissionType submissionType]) async {
+    Response response;
+
+    // If we already have the data for which a get request would have been otherwise needed, use that
+    if (suppliedData != null)
+      response = Response(data: suppliedData);
+    else
+      response = await api.Get(
+          '${submissionType == SubmissionType.Post ? 'post' : 'comment'}/$id',
+          {'sort': 'top'});
 
     if (response.data['id'] == null) {
-      throwError('Could not obtain id of post $id!');
+      throwError(
+          'Could not obtain id of ${submissionType == SubmissionType.Post ? 'post' : 'comment'}!');
       return;
     }
 
-    print(1);
-
-    id = response.data['id'];
+    this.id = response.data['id'];
     full_id = response.data['fullname'];
     link = response.data['permalink'];
     full_link = '$API.website_link$link';
-    created_at = int.parse(response.data['created_utc']);
-    edited_at = int.parse(response.data['edited_utc']);
-
-    print(2);
+    created_at = response.data['created_utc'];
+    edited_at = response.data['edited_utc'];
 
     flags = SubmissionFlags(
         response.data['is_archived'] == '1' ? true : false,
@@ -43,21 +52,17 @@ class Post extends Entity {
         response.data['is_nsfl'] == '1' ? true : false,
         edited_at > 0);
 
-    print(3);
-
     author = Author(
         response.data['author'],
-        response.data['title'] != null
+        response.data['author_title'] != null
             ? Title(
-                response.data['title']['text'].startsWith(',')
-                    ? response.data['title']['text'].split(', ')[1]
-                    : response.data['title']['text'],
-                response.data['title']['id'].toString(),
-                response.data['title']['kind'].toString(),
-                response.data['title']['color'].toString())
+                response.data['author_title']['text'].startsWith(',')
+                    ? response.data['author_title']['text'].split(', ')[1]
+                    : response.data['author_title']['text'],
+                response.data['author_title']['id'].toString(),
+                response.data['author_title']['kind'].toString(),
+                response.data['author_title']['color'].toString())
             : null);
-
-    print(4);
 
     content = Content(
         response.data['title'],
@@ -67,20 +72,27 @@ class Post extends Entity {
         response.data['thumb_url'],
         response.data['embed_url']);
 
-    print(5);
-
-    votes = Votes(
-        int.parse(response.data['score']),
-        int.parse(response.data['upvotes']),
-        int.parse(response.data['downvotes']),
-        int.parse(response.data['voted']));
-
-    print(6);
+    votes = Votes(response.data['score'], response.data['upvotes'],
+        response.data['downvotes'], response.data['voted']);
 
     guild_name = GuildName(
         response.data['guild_name'], response.data['original_guild_name']);
+  }
+}
 
-    print(7);
+class Post extends Submission {
+  Post(API api);
+
+  void obtainData(String id, [Map<String, dynamic> suppliedData]) {
+    _obtainData(id, suppliedData, SubmissionType.Post);
+  }
+}
+
+class Comment extends Submission {
+  Comment(API api);
+
+  void obtainData(String id, [Map<String, dynamic> suppliedData]) {
+    _obtainData(id, suppliedData, SubmissionType.Comment);
   }
 }
 
@@ -115,14 +127,6 @@ class Content {
 
   Content(this.title, this.body, this.domain, this.url, this.thumb_url,
       this.embed_url);
-}
-
-/// The text body
-class Body {
-  final String text;
-  final String html;
-
-  Body(this.text, this.html);
 }
 
 /// The votes of a submission

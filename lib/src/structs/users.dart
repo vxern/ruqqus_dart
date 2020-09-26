@@ -10,10 +10,10 @@ import 'primary.dart';
 // USERS
 
 /// The user class. Comprises info about users
-class User extends Entity {
+class User extends Primary {
   final API api;
 
-  final String username;
+  String username;
   Title title;
   Body bio;
   UserStats stats;
@@ -26,16 +26,23 @@ class User extends Entity {
 
   String ban_reason = "User isn't banned";
 
-  User(this.api, this.username);
+  User(this.api);
 
-  void obtainData() async {
-    Response response = await api.Get('user/$username');
+  void obtainData(String username, [Map<String, dynamic> suppliedData]) async {
+    Response response;
+
+    // If we already have the data for which a get request would have been otherwise needed, use that
+    if (suppliedData != null)
+      response = Response(data: suppliedData);
+    else
+      response = await api.Get('user/$username');
 
     if (response.data['id'] == null) {
       throwError('Could not obtain id of user $username!');
       return;
     }
 
+    this.username = response.data['username'];
     id = response.data['id'];
     full_id = 't1_$id';
     link = response.data['permalink'];
@@ -91,12 +98,21 @@ class User extends Entity {
   Future<List<Post>> obtainPosts(SortType sort_type, int page) async {
     var result = List<Post>();
 
+    // Get all posts on a page
     Response response = await api.Get('user/$username/listing', {
       'sort': sort_type.toString().split('.')[1].toLowerCase(),
       'page': page
     });
 
-    //TODO: Iterate through response and add to result list
+    // Converts _InternalLinkedHashMap<String, dynamic> to a List<dynamic> with all the posts
+    List<dynamic> posts = Map<String, dynamic>.from(response.data)['data'];
+
+    // Iterates through list of
+    for (Map<String, dynamic> entry in posts) {
+      Post post = Post(api);
+      post.obtainData(null, entry);
+      result.add(post);
+    }
 
     return result;
   }
@@ -143,5 +159,3 @@ class Badge {
 
   Badge(this.name, this.description, this.url, this.created_at);
 }
-
-// TBA

@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 
 import 'client.dart';
 import 'logger.dart';
+import 'structs/primary.dart';
 
 /// Provides a nicer interface for calling the API
 class API {
@@ -59,7 +60,6 @@ class API {
     Response response;
 
     try {
-      print(requestData);
       // Make a ruqquest to Ruqqus
       response =
           await Post(API.grant_url, requestData, {'User-Agent': user_agent});
@@ -125,43 +125,37 @@ class API {
   }
 
   /// Upvote/downvote, isUp:true = upvote, isUp:false = downvote, isUp:null = remove vote
-  Future<Response> vote(Type type, String target, bool isUp) async {
+  Future<Response> vote(SubmissionType type, String target, bool isUp) async {
     Response response = await Post(
-        'vote/${type == PostType.Post ? 'post' : 'comment'}/$target/${isUp == null ? 0 : (isUp ? 1 : -1)}');
+        'vote/${type == SubmissionType.Post ? 'post' : 'comment'}/$target/${isUp == null ? 0 : (isUp ? 1 : -1)}');
 
     log(
         Severity.Success,
         (isUp == null
                 ? 'Removed vote from '
                 : (isUp ? 'Upvoted ' : 'Downvoted ')) +
-            '${type == PostType.Post ? 'post' : 'comment'}.');
+            '${type == SubmissionType.Post ? 'post' : 'comment'}.');
     return response;
   }
 
   /// Edit post/comment and supplant body with the provided body
-  Future<Response> edit(PostType type, String id, String body) async {
+  Future<Response> edit(SubmissionType type, String id, String body) async {
     Response response = await Post(
-        '${type == PostType.Post ? 'edit_post' : 'edit_comment'}/$id',
+        '${type == SubmissionType.Post ? 'edit_post' : 'edit_comment'}/$id',
         {'body': body});
 
     log(Severity.Success,
-        'Edited ${type == PostType.Post ? 'post' : 'comment'}.');
+        'Edited ${type == SubmissionType.Post ? 'post' : 'comment'}.');
     return response;
   }
 
   /// Delete post/comment
-  Future<Response> delete(PostType type, String id) async {
+  Future<Response> delete(SubmissionType type, String id) async {
     Response response = await Post(
-        type == PostType.Post ? 'delete_post/$id' : 'delete/comment/$id');
+        type == SubmissionType.Post ? 'delete_post/$id' : 'delete/comment/$id');
 
     log(Severity.Success,
-        'Deleted ${type == PostType.Post ? 'post' : 'comment'}.');
+        'Deleted ${type == SubmissionType.Post ? 'post' : 'comment'}.');
     return response;
   }
-
-  // GET
-
-  // None yet...
 }
-
-enum PostType { Post, Comment }
