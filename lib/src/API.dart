@@ -59,6 +59,7 @@ class API {
     Response response;
 
     try {
+      print(requestData);
       // Make a ruqquest to Ruqqus
       response =
           await Post(API.grant_url, requestData, {'User-Agent': user_agent});
@@ -72,7 +73,6 @@ class API {
     }
 
     // Build next ruqquest
-    requestData['refresh_token'] = response.data['refresh_token'];
     access_token = response.data['access_token'];
 
     // Set up client and start refreshing
@@ -84,7 +84,7 @@ class API {
       client.streamController.add('ready');
     }
 
-    Future.delayed(Duration(minutes: 5), () {
+    Future.delayed(Duration(minutes: 59, seconds: 55), () {
       obtainToken();
     });
   }
