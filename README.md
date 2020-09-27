@@ -10,10 +10,10 @@ import 'package:ruqqus/ruqqus.dart';
 
 void main() async {
   Client client = Client(
-      'client_id',
-      'client_secret',
-      'refresh_token', // If you haven't used the library yet, you should use 'code' instead.
-      'ruqqus.dart by @vxern'); // User agent
+      client_id: 'client_id',
+      client_secret: 'client_secret',
+      refresh_token: 'refresh_token',
+      user_agent: 'ruqqus.dart by @vxern');
 
   client.streamController.stream.listen((event) async {
     switch (event) {
@@ -22,7 +22,7 @@ void main() async {
         Response response = await client.api.post(
             '+formatplayground',
             'This post has been made using ruqqus.dart', // Title
-            'This post has been made using ruqqus.dart'); // Body
+            'https://github.com/devongalat/ruqqus.dart'); // Body
         break;
     }
   });
