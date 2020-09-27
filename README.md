@@ -77,3 +77,23 @@ await client.api.reply(
   parent: 'cas6',
   body: 'This reply has been made using ruqqus.dart');
 ```
+
+### **Vote on a post or comment:**
+```dart
+Future<Response> vote(SubmissionType type, String target, bool isUp)
+```
+##### Parameters
+- [enum]SubmissionType type = The type of submission you're voting on:
+  - SubmissionType.Post
+  - SubmissionType.Comment
+- String target = The target post/comment
+- bool is_up = 
+  - true: upvote
+  - null: remove vote
+  - false: downvote
+
+##### Usage example
+```dart
+await client.api
+  .vote(type: SubmissionType.Post, target: '3kz9', is_up: true);
+```
