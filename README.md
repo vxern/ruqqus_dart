@@ -78,15 +78,15 @@ await client.api.reply(
   body: 'This reply has been made using ruqqus.dart');
 ```
 
-### **Vote on a post or comment:**
+### **Vote on post / comment:**
 ```dart
-Future<Response> vote(SubmissionType type, String target, bool isUp)
+Future<Response> vote(SubmissionType type, String id, bool isUp)
 ```
 ##### Parameters
-- [enum]SubmissionType type = The type of submission you're voting on:
+- [enum] SubmissionType type = The type of submission you're voting on:
   - SubmissionType.Post
   - SubmissionType.Comment
-- String target = The target post/comment
+- String id = The ID of the post / comment you're voting on
 - bool is_up = 
   - true: upvote
   - null: remove vote
@@ -95,5 +95,38 @@ Future<Response> vote(SubmissionType type, String target, bool isUp)
 ##### Usage example
 ```dart
 await client.api
-  .vote(type: SubmissionType.Post, target: '3kz9', is_up: true);
+  .vote(type: SubmissionType.Post, id: '3kz9', is_up: true);
+```
+
+### **Edit post / comment**
+```dart
+Future<Response> edit(SubmissionType type, String id, bool isUp)
+```
+##### Parameters
+- [enum] SubmissionType type = The type of submission you're editing:
+  - SubmissionType.Post
+  - SubmissionType.Comment
+- String id = The ID of the post / comment you're editing
+- String body = The content/body of the edit
+
+##### Usage example
+```dart
+await client.api
+  .edit(type: SubmissionType.Post, id: 'your_post_id', body: 'This is my edit');
+```
+
+### **Delete post / comment**
+```dart
+Future<Response> delete(SubmissionType type, String target, bool isUp)
+```
+##### Parameters
+- [enum] SubmissionType type = The type of submission you're deleting:
+  - SubmissionType.Post
+  - SubmissionType.Comment
+- String id = The ID of the post / comment you're deleting
+
+##### Usage example
+```dart
+await client.api
+  .delete(type: SubmissionType.Post, id: 'your_post_id');
 ```
