@@ -77,9 +77,6 @@ class API {
 
     // Set up client and start refreshing
     if (!client.isReady) {
-      requestData['grant_type'] = 'refresh';
-      requestData.remove('code');
-
       client.isReady = true;
       client.streamController.add('ready');
     }
@@ -92,11 +89,12 @@ class API {
   // POST
 
   /// Submits a post to a guild with the specified title and body
-  Future<Response> post(String targetBoard, String title, String body) async {
+  Future<Response> post(
+      {String target_board, String title, String body}) async {
     Response response = await Post(
-        'submit', {'board': targetBoard, 'title': title, 'body': body});
+        'submit', {'board': target_board, 'title': title, 'body': body});
 
-    if (response.data['guild_name'] == 'general' && targetBoard != 'general') {
+    if (response.data['guild_name'] == 'general' && target_board != 'general') {
       throwWarning(
           'As the guild name you provided is not valid, the post has been submitted to +general.');
       return response;
@@ -106,56 +104,54 @@ class API {
     return response;
   }
 
-  /// Submits a comment under a parent with the specified body
-  Future<Response> comment(String parent, String body) async {
-    Response response =
-        await Post('comment', {'parent_fullname': 't2_$parent', 'body': body});
-
-    log(Severity.Success, 'Comment submitted.');
-    return response;
-  }
-
-  /// Submits a reply under a comment with the specified body
-  Future<Response> reply(String parent, String body) async {
-    Response response =
-        await Post('comment', {'parent_fullname': 't3_$parent', 'body': body});
+  /// Submits a reply under a parent with the specified body
+  Future<Response> reply(
+      {SubmissionType type_of_target, String id, String body}) async {
+    Response response = await Post('comment', {
+      'parent_fullname':
+          '${type_of_target == SubmissionType.Post ? 't2' : 't3'}_$id',
+      'body': body
+    });
 
     log(Severity.Success, 'Reply submitted.');
     return response;
   }
 
-  /// Upvote/downvote, isUp:true = upvote, isUp:false = downvote, isUp:null = remove vote
-  Future<Response> vote(SubmissionType type, String target, bool isUp) async {
+  /// Upvote/downvote, is_up:true = upvote, is_up:false = downvote, is_up:null = remove vote
+  Future<Response> vote(
+      {SubmissionType type_of_target, String id, bool is_up}) async {
     Response response = await Post(
-        'vote/${type == SubmissionType.Post ? 'post' : 'comment'}/$target/${isUp == null ? 0 : (isUp ? 1 : -1)}');
+        'vote/${type_of_target == SubmissionType.Post ? 'post' : 'comment'}/$id/${is_up == null ? 0 : (is_up ? 1 : -1)}');
 
     log(
         Severity.Success,
-        (isUp == null
+        (is_up == null
                 ? 'Removed vote from '
-                : (isUp ? 'Upvoted ' : 'Downvoted ')) +
-            '${type == SubmissionType.Post ? 'post' : 'comment'}.');
+                : (is_up ? 'Upvoted ' : 'Downvoted ')) +
+            '${type_of_target == SubmissionType.Post ? 'post' : 'comment'}.');
     return response;
   }
 
   /// Edit post/comment and supplant body with the provided body
-  Future<Response> edit(SubmissionType type, String id, String body) async {
+  Future<Response> edit(
+      {SubmissionType type_of_target, String id, String body}) async {
     Response response = await Post(
-        '${type == SubmissionType.Post ? 'edit_post' : 'edit_comment'}/$id',
+        '${type_of_target == SubmissionType.Post ? 'edit_post' : 'edit_comment'}/$id',
         {'body': body});
 
     log(Severity.Success,
-        'Edited ${type == SubmissionType.Post ? 'post' : 'comment'}.');
+        'Edited ${type_of_target == SubmissionType.Post ? 'post' : 'comment'}.');
     return response;
   }
 
   /// Delete post/comment
-  Future<Response> delete(SubmissionType type, String id) async {
-    Response response = await Post(
-        type == SubmissionType.Post ? 'delete_post/$id' : 'delete/comment/$id');
+  Future<Response> delete({SubmissionType type_of_target, String id}) async {
+    Response response = await Post(type_of_target == SubmissionType.Post
+        ? 'delete_post/$id'
+        : 'delete/comment/$id');
 
     log(Severity.Success,
-        'Deleted ${type == SubmissionType.Post ? 'post' : 'comment'}.');
+        'Deleted ${type_of_target == SubmissionType.Post ? 'post' : 'comment'}.');
     return response;
   }
 }
