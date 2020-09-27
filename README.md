@@ -33,7 +33,7 @@ void main() async {
 
 ### **Submit post:**
 ```dart
-Future<Response> post(String target_board, String title, String body)
+Future<Response> post({String target_board, String title, String body}) async
 ```
 ##### Parameters
 - String target_board = The target guild. Default: '+general'
@@ -48,42 +48,37 @@ await client.api.post(
   body: 'https://github.com/devongalat/ruqqus.dart');
 ```
 
-### **Submit comment:**
-```dart
-Future<Response> comment(String parent, String body)
-```
-##### Parameters
-- String parent = The ID of the post you're commenting under
-- String body = The content/body of your comment
-
-##### Usage example
-```dart
-await client.api.comment(
-  parent: '3kz9',
-  body: 'This comment has been made using ruqqus.dart');
-```
-
 ### **Submit reply:**
 ```dart
-Future<Response> reply(String parent, String body)
+Future<Response> reply({SubmissionType type_of_target, String id, String body}) async
 ```
 ##### Parameters
-- String parent = The ID of the comment you're replying to
+- [enum] SubmissionType type_of_target = The type of submission you're replying to:
+  - SubmissionType.Post
+  - SubmissionType.Comment
+- String id = The ID of the post / comment you're replying to
 - String body = The content/body of your reply
 
-##### Usage example
+##### Usage examples
 ```dart
 await client.api.reply(
-  parent: 'cas6',
-  body: 'This reply has been made using ruqqus.dart');
+  type_of_target: SubmissionType.Post
+  id: '3kz9',
+  body: 'This reply to a post has been made using ruqqus.dart');
+```
+```dart
+await client.api.reply(
+  type_of_target: SubmissionType.Comment
+  id: 'cas6',
+  body: 'This reply to a comment has been made using ruqqus.dart');
 ```
 
 ### **Vote on post / comment:**
 ```dart
-Future<Response> vote(SubmissionType type, String id, bool isUp)
+Future<Response> vote({SubmissionType type_of_target, String id, bool isUp}) async
 ```
 ##### Parameters
-- [enum] SubmissionType type = The type of submission you're voting on:
+- [enum] SubmissionType type_of_target = The type of submission you're voting on:
   - SubmissionType.Post
   - SubmissionType.Comment
 - String id = The ID of the post / comment you're voting on
@@ -95,15 +90,15 @@ Future<Response> vote(SubmissionType type, String id, bool isUp)
 ##### Usage example
 ```dart
 await client.api
-  .vote(type: SubmissionType.Post, id: '3kz9', is_up: true);
+  .vote(type_of_target: SubmissionType.Post, id: '3kz9', is_up: true);
 ```
 
 ### **Edit post / comment**
 ```dart
-Future<Response> edit(SubmissionType type, String id, bool isUp)
+Future<Response> edit({SubmissionType type_of_target, String id, bool isUp}) async
 ```
 ##### Parameters
-- [enum] SubmissionType type = The type of submission you're editing:
+- [enum] SubmissionType type_of_target = The type of submission you're editing:
   - SubmissionType.Post
   - SubmissionType.Comment
 - String id = The ID of the post / comment you're editing
@@ -112,15 +107,15 @@ Future<Response> edit(SubmissionType type, String id, bool isUp)
 ##### Usage example
 ```dart
 await client.api
-  .edit(type: SubmissionType.Post, id: 'your_post_id', body: 'This is my edit');
+  .edit(type_of_target: SubmissionType.Post, id: 'your_post_id', body: 'This is my edit');
 ```
 
 ### **Delete post / comment**
 ```dart
-Future<Response> delete(SubmissionType type, String target, bool isUp)
+Future<Response> delete({SubmissionType type_of_target, String target, bool isUp}) async
 ```
 ##### Parameters
-- [enum] SubmissionType type = The type of submission you're deleting:
+- [enum] SubmissionType type_of_target = The type of submission you're deleting:
   - SubmissionType.Post
   - SubmissionType.Comment
 - String id = The ID of the post / comment you're deleting
@@ -128,5 +123,5 @@ Future<Response> delete(SubmissionType type, String target, bool isUp)
 ##### Usage example
 ```dart
 await client.api
-  .delete(type: SubmissionType.Post, id: 'your_post_id');
+  .delete(type_of_target: SubmissionType.Post, id: 'your_post_id');
 ```
