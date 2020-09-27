@@ -112,7 +112,7 @@ await client.api
 
 ### **Delete post / comment**
 ```dart
-Future<Response> delete({SubmissionType type_of_target, String target, bool isUp}) async
+Future<Response> delete({SubmissionType type_of_target, String id}) async
 ```
 ##### Parameters
 - [enum] SubmissionType type_of_target = The type of submission you're deleting:
