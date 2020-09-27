@@ -36,9 +36,9 @@ void main() async {
 Future<Response> post(String target_board, String title, String body)
 ```
 ###### Parameters
-String target_board = The target guild. Default: '+general'
-String title = The title of your post
-String body = The content/body of your post
+- String target_board = The target guild. Default: '+general'
+- String title = The title of your post
+- String body = The content/body of your post
 
 ##### Usage example
 ```dart
@@ -53,8 +53,8 @@ await client.api.post(
 Future<Response> comment(String parent, String body)
 ```
 ###### Parameters
-String parent = The ID of the post you're commenting under
-String body = The content/body of your comment
+- String parent = The ID of the post you're commenting under
+- String body = The content/body of your comment
 
 ##### Usage example
 ```dart
@@ -68,8 +68,8 @@ await client.api.comment(
 Future<Response> reply(String parent, String body)
 ```
 ###### Parameters
-String parent = The ID of the comment you're replying to
-String body = The content/body of your reply
+- String parent = The ID of the comment you're replying to
+- String body = The content/body of your reply
 
 ##### Usage example
 ```dart
