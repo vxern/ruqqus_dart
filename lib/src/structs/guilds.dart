@@ -48,6 +48,13 @@ class Guild extends Primary {
   }
 }
 
+class GuildName {
+  final String guild_name;
+  final String original_guild_name;
+
+  GuildName(this.guild_name, this.original_guild_name);
+}
+
 class GuildFlags {
   final bool is_banned;
   final bool is_private;

@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import '../API.dart';
 import '../logger.dart';
 import 'users.dart';
+import 'guilds.dart';
 import 'primary.dart';
 
 /// The submission class. Comprises info about a post or comment
@@ -29,7 +30,7 @@ class Submission extends Primary {
     else
       response = await api.Get(
           '${submissionType == SubmissionType.Post ? 'post' : 'comment'}/$id',
-          {'sort': 'top'});
+          headers: {'sort': 'top'});
 
     if (response.data['id'] == null) {
       throwError(
@@ -107,13 +108,6 @@ class SubmissionFlags {
 
   SubmissionFlags(this.is_archived, this.is_banned, this.is_deleted,
       this.is_nsfw, this.is_nsfl, this.is_edited);
-}
-
-class GuildName {
-  final String guild_name;
-  final String original_guild_name;
-
-  GuildName(this.guild_name, this.original_guild_name);
 }
 
 /// The content of the post

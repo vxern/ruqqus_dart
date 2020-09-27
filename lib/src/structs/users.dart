@@ -99,7 +99,7 @@ class User extends Primary {
     var result = List<Post>();
 
     // Get all posts on a page
-    Response response = await api.Get('user/$username/listing', {
+    Response response = await api.Get('user/$username/listing', headers: {
       'sort': sort_type.toString().split('.')[1].toLowerCase(),
       'page': page
     });
@@ -144,6 +144,7 @@ class UserStats {
       this.comment_reputation);
 }
 
+/// The user's flags - used for requesting data
 class UserFlags {
   bool is_banned;
   bool is_deleted;
