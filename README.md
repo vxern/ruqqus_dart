@@ -31,11 +31,11 @@ void main() async {
 
 ## Methods
 
-#### Submit post:
+### Submit post:
 ```dart
 Future<Response> post(String target_board, String title, String body)
 ```
-###### Parameters
+##### Parameters
 - String target_board = The target guild. Default: '+general'
 - String title = The title of your post
 - String body = The content/body of your post
@@ -48,11 +48,11 @@ await client.api.post(
   body: 'https://github.com/devongalat/ruqqus.dart');
 ```
 
-#### Submit comment:
+### Submit comment:
 ```dart
 Future<Response> comment(String parent, String body)
 ```
-###### Parameters
+##### Parameters
 - String parent = The ID of the post you're commenting under
 - String body = The content/body of your comment
 
@@ -63,11 +63,11 @@ await client.api.comment(
   body: 'This comment has been made using ruqqus.dart');
 ```
 
-#### Submit reply:
+### Submit reply:
 ```dart
 Future<Response> reply(String parent, String body)
 ```
-###### Parameters
+##### Parameters
 - String parent = The ID of the comment you're replying to
 - String body = The content/body of your reply
 
