@@ -31,7 +31,7 @@ void main() async {
 
 ## Methods
 
-### Submit post:
+### **Submit post:**
 ```dart
 Future<Response> post(String target_board, String title, String body)
 ```
@@ -48,7 +48,7 @@ await client.api.post(
   body: 'https://github.com/devongalat/ruqqus.dart');
 ```
 
-### Submit comment:
+### **Submit comment:**
 ```dart
 Future<Response> comment(String parent, String body)
 ```
@@ -63,7 +63,7 @@ await client.api.comment(
   body: 'This comment has been made using ruqqus.dart');
 ```
 
-### Submit reply:
+### **Submit reply:**
 ```dart
 Future<Response> reply(String parent, String body)
 ```
