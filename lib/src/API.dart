@@ -8,7 +8,6 @@ import 'client.dart';
 import 'logger.dart';
 import 'structs/primary.dart';
 import 'structs/settings.dart';
-import 'structs/users.dart';
 
 /// Provides a nicer interface for calling the API
 class API {
@@ -138,7 +137,7 @@ class API {
   Future<Response> edit(
       {SubmissionType type_of_target, String id, String body}) async {
     Response response = await Post(
-        '${type_of_target == SubmissionType.Post ? 'edit_post' : 'edit_comment'}/$id',
+        '${API.website_link}/${type_of_target == SubmissionType.Post ? 'edit_post' : 'edit_comment'}/$id',
         data: {'body': body});
 
     log(Severity.Success,
@@ -174,10 +173,6 @@ class API {
     log(Severity.Success, 'Updated settings.');
     return response;
   }
-
-//
-// TODO: NEEDS WORK
-//
 
   /// Update password
   Future<Response> update_password({UpdatePassword update_password}) async {
@@ -248,10 +243,6 @@ class API {
     log(Severity.Success, 'Your account has been deleted. Well done.');
     return response;
   }
-
-//
-// NEEDS WORK
-//
 
   /// Subscribes to a user
   Future<Response> follow({String username}) async {
