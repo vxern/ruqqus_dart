@@ -54,3 +54,12 @@ class Disable2FA {
 
   Disable2FA(this.two_factor_token, this.password);
 }
+
+/// Struct for deleting account
+class AccountDeletion {
+  final String password;
+  String delete_reason;
+  String two_factor_token;
+
+  AccountDeletion(this.password, {this.delete_reason, this.two_factor_token});
+}

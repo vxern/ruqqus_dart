@@ -175,6 +175,10 @@ class API {
     return response;
   }
 
+//
+// TODO: NEEDS WORK
+//
+
   /// Update password
   Future<Response> update_password({UpdatePassword update_password}) async {
     Response response = await Post('$website_link/settings/security', headers: {
@@ -220,6 +224,34 @@ class API {
     log(Severity.Success, 'Disabled 2-factor authorization successfully!');
     return response;
   }
+
+  /// Logs all other devices out
+  Future<Response> logout_all({String password}) async {
+    Response response =
+        await Post('$website_link/settings/log_out_all_others', headers: {
+      'password': password,
+    });
+
+    log(Severity.Success, 'All other devices have been logged out');
+    return response;
+  }
+
+  /// Deletes account ( This action cannot be reversed! )
+  Future<Response> delete_account({AccountDeletion account_deletion}) async {
+    Response response =
+        await Post('$website_link/settings/delete_account', headers: {
+      'password': account_deletion.password,
+      'delete_reason': account_deletion.delete_reason,
+      'twofactor': account_deletion.two_factor_token,
+    });
+
+    log(Severity.Success, 'Your account has been deleted. Well done.');
+    return response;
+  }
+
+//
+// NEEDS WORK
+//
 
   /// Subscribes to a user
   Future<Response> follow({String username}) async {
