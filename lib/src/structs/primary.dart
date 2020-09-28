@@ -17,6 +17,8 @@ class Body {
   Body(this.text, this.html);
 }
 
+/// The sorting used for posts and comments
 enum SortType { Hot, Top, New, Disputed, Random }
 
+/// The type of submission
 enum SubmissionType { Post, Comment }
