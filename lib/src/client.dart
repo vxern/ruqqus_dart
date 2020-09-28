@@ -17,7 +17,7 @@ class Client {
   // Controls
   bool isReady = false;
 
-  Client({client_id, String client_secret, String refresh_token, user_agent}) {
+  Client({String client_id, String client_secret, String refresh_token, String user_agent}) {
     requestData = {
       'client_id': client_id,
       'client_secret': client_secret,
@@ -27,5 +27,12 @@ class Client {
 
     api = API(this, requestData, user_agent);
     api.obtainToken();
+  }
+  
+  /// Constructs an authentication link
+  static Future<String> obtainAuthURL({String client_id, String redirect_uri, String state, List<String> scopes, bool is_permanent}) {
+    String scope = scopes.join(',');
+    
+    return '${API.website_link}/oauth/authorize?client_id=$client_id&redirect_uri=$redirect_uri&state=${state ?? 'ruqqus'}&scope=$scope&permanent=$is_permanent'
   }
 }
