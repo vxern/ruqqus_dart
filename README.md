@@ -20,9 +20,9 @@ void main() async {
       case 'ready':
         log(Severity.Success, 'ruqqus_dart is ready!');
         await client.api.post(
-            '+formatplayground',
-            'This post has been made using ruqqus.dart', // Title
-            'https://github.com/devongalat/ruqqus.dart'); // Body
+          target_board: '+formatplayground',
+          title: 'This post has been made using ruqqus.dart',
+          body: 'https://github.com/devongalat/ruqqus.dart');
         break;
     }
   });
