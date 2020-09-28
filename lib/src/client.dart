@@ -30,7 +30,7 @@ class Client {
   }
   
   /// Constructs an authentication link
-  static Future<String> obtainAuthURL({String client_id, String redirect_uri, String state, List<String> scopes, bool is_permanent}) {
+  static Future<String> obtainAuthURL({String client_id, String redirect_uri, String state, List<String> scopes, bool is_permanent}) async {
     String scope = scopes.join(',');
     
     return '${API.website_link}/oauth/authorize?client_id=$client_id&redirect_uri=$redirect_uri&state=${state ?? 'ruqqus'}&scope=$scope&permanent=$is_permanent'
