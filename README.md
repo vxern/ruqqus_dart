@@ -36,9 +36,9 @@ void main() async {
 Future<Response> post({String target_board, String title, String body}) async
 ```
 ##### Parameters
-- String target_board = The target guild. Default: '+general'
-- String title = The title of your post
-- String body = The content/body of your post
+- [String] target_board = The target guild. Default: '+general'
+- [String] title = The title of your post
+- [String] body = The content/body of your post
 
 ##### Usage example
 ```dart
@@ -56,8 +56,8 @@ Future<Response> reply({SubmissionType type_of_target, String id, String body}) 
 - [enum] SubmissionType type_of_target = The type of submission you're replying to:
   - SubmissionType.Post
   - SubmissionType.Comment
-- String id = The ID of the post / comment you're replying to
-- String body = The content/body of your reply
+- [String] id = The ID of the post / comment you're replying to
+- [String] body = The content/body of your reply
 
 ##### Usage examples
 ```dart
@@ -81,8 +81,8 @@ Future<Response> vote({SubmissionType type_of_target, String id, bool isUp}) asy
 - [enum] SubmissionType type_of_target = The type of submission you're voting on:
   - SubmissionType.Post
   - SubmissionType.Comment
-- String id = The ID of the post / comment you're voting on
-- bool is_up = 
+- [String] id = The ID of the post / comment you're voting on
+- [bool] is_up = 
   - true: upvote
   - null: remove vote
   - false: downvote
@@ -93,7 +93,7 @@ await client.api
   .vote(type_of_target: SubmissionType.Post, id: '3kz9', is_up: true);
 ```
 
-### **Edit post / comment**
+### [ NOT YET ALLOWED BY API ] **Edit post / comment**
 ```dart
 Future<Response> edit({SubmissionType type_of_target, String id, bool isUp}) async
 ```
@@ -101,8 +101,8 @@ Future<Response> edit({SubmissionType type_of_target, String id, bool isUp}) asy
 - [enum] SubmissionType type_of_target = The type of submission you're editing:
   - SubmissionType.Post
   - SubmissionType.Comment
-- String id = The ID of the post / comment you're editing
-- String body = The content/body of the edit
+- [String] id = The ID of the post / comment you're editing
+- [String] body = The content/body of the edit
 
 ##### Usage example
 ```dart
@@ -118,10 +118,39 @@ Future<Response> delete({SubmissionType type_of_target, String id}) async
 - [enum] SubmissionType type_of_target = The type of submission you're deleting:
   - SubmissionType.Post
   - SubmissionType.Comment
-- String id = The ID of the post / comment you're deleting
+- [String id] = The ID of the post / comment you're deleting
 
 ##### Usage example
 ```dart
 await client.api
   .delete(type_of_target: SubmissionType.Post, id: 'your_post_id');
+```
+
+### [ NOT YET ALLOWED BY API ] **Update Profile Settings**
+```dart
+Future<Response> update_profile_settings({ProfileSettings profile_settings}) async
+```
+##### Parameters
+- [class] ProfileSettings profile_settings = Your profile settings
+  - [bool] over_18 = Are you over 18?
+  - [bool] hide_offensive = Hide offensive content
+  - [bool] show_nsfl = Show NSFL ( Not Safe For Life ) content
+  - [bool] filter_nsfw = Filter NSFW ( Not Safe For Work ) content
+  - [bool] private = You do not want people to see your post / comment history
+  - [bool] nofollow = You do not want people to subscribe to you
+  - [String] bio = Your profile biography / description
+  - [String] title_id = The ID of your title
+
+##### Usage example
+```dart
+await client.api.update_profile_settings(
+    profile_settings: ProfileSettings(
+        over_18: true,
+        hide_offensive: false,
+        show_nsfl: true,
+        filter_nsfw: false,
+        private: false,
+        nofollow: false,
+        bio: 'Replacement biography',
+        title_id: 'ID of title here'));
 ```
