@@ -168,6 +168,5 @@ Future<Response> update_password({UpdatePassword update_password}) async
 ```dart
 await client.api.update_password(
     update_password: UpdatePassword(
-        new_password: 'chad*&@#$(1d^'
-        old_password: 'virgin123'));
+        new_password: 'chad*&@#\$(1d^', old_password: 'virgin123'));
 ```
