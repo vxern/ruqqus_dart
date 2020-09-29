@@ -13,7 +13,7 @@ import 'primary.dart';
 class User extends Primary {
   final API api;
 
-  String username;
+  final String username;
   Title title;
   Body bio;
   UserStats stats;
@@ -26,9 +26,9 @@ class User extends Primary {
 
   String ban_reason = "User isn't banned";
 
-  User(this.api);
+  User(this.api, this.username);
 
-  void obtainData(String username, [Map<String, dynamic> suppliedData]) async {
+  void obtainData([Map<String, dynamic> suppliedData]) async {
     Response response;
 
     // If we already have the data for which a get request would have been otherwise needed, use that
@@ -42,7 +42,6 @@ class User extends Primary {
       return;
     }
 
-    this.username = response.data['username'];
     id = response.data['id'];
     full_id = 't1_$id';
     link = response.data['permalink'];
@@ -95,7 +94,8 @@ class User extends Primary {
   }
 
   /// Gets and returns a list of 'Post' structs.
-  Future<List<Post>> obtainPosts(SortType sort_type, int page) async {
+  Future<List<Post>> obtainPosts(
+      {SortType sort_type = SortType.Hot, int page = 1}) async {
     var result = List<Post>();
 
     // Get all posts on a page
