@@ -1,5 +1,5 @@
-## Ruqqus.dart
-#### A powerful Dart library for interacting with the Ruqqus API.
+# Ruqqus.dart ( 1.0.0 )
+### A powerful Dart library for interacting with the Ruqqus API.
 
 ## Usage
 
@@ -29,7 +29,7 @@ void main() async {
 }
 ```
 
-## Methods
+## *METHODS: Client.API*
 
 ### **Submit post:**
 ```dart
@@ -126,6 +126,30 @@ await client.api
   .delete(type_of_target: SubmissionType.Post, id: 'your_post_id');
 ```
 
+### [ NOT YET ALLOWED BY API ] **Follow user (Subscribe to)**
+```dart
+Future<Response> follow({String username}) async
+```
+##### Parameters
+- [String] username = User to follow
+
+##### Usage example
+```dart
+await client.api.follow(username: 'vxern');
+```
+
+### [ NOT YET ALLOWED BY API ] **Unfollow user (Unsubscribe from)**
+```dart
+Future<Response> unfollow({String username}) async
+```
+##### Parameters
+- [String] username = User to unfollow
+
+##### Usage example
+```dart
+await client.api.unfollow(username: 'vxern');
+```
+
 ### [ NOT YET ALLOWED BY API ] **Update Profile Settings**
 ```dart
 Future<Response> update_profile_settings({ProfileSettings profile_settings}) async
@@ -161,12 +185,123 @@ Future<Response> update_password({UpdatePassword update_password}) async
 ```
 ##### Parameters
 - [class] UpdatePassword update_password
-  - [bool] new_password = Your new password
-  - [bool] old_password = Your old password
+  - [String] new_password = Your new password
+  - [String] old_password = Your old password
 
 ##### Usage example
 ```dart
 await client.api.update_password(
     update_password: UpdatePassword(
         new_password: 'chad*&@#\$(1d^', old_password: 'virgin123'));
+```
+
+### [ NOT YET ALLOWED BY API ] **Update Email**
+```dart
+Future<Response> update_email({UpdateEmail update_email}) async
+```
+##### Parameters
+- [class] UpdateEmail update_email
+  - [String] new_email = Your new email
+  - [String] password = Your password
+
+##### Usage example
+```dart
+await client.api.update_email(
+    update_email: UpdateEmail(
+        new_email: 'sample_email@ruqqus.mail', password: 'password'));
+```
+
+### [ NOT YET ALLOWED BY API ] **Enable 2FA**
+```dart
+Future<Response> enable_2fa({Enable2FA enable_2fa}) async
+```
+##### Parameters
+- [class] Enable2FA enable_2fa
+  - [String] two_factor_secret = The 2FA secret code
+  - [String] two_factor_token = The 2FA token
+  - [String] password = Your password
+
+##### Usage example
+```dart
+await client.api.enable_2fa(
+    enable_2fa: Enable2FA(
+        two_factor_token: 'token',
+        two_factor_secret: 'secret',
+        password: 'password'));
+```
+
+### [ NOT YET ALLOWED BY API ] **Disable 2FA**
+```dart
+Future<Response> disable_2fa({Disable2FA disable_2fa}) async
+```
+##### Parameters
+- [class] Disable2FA disable_2fa
+  - [String] two_factor_token = The 2FA token
+  - [String] password = Your password
+
+##### Usage example
+```dart
+await client.api.disable_2fa(
+    disable_2fa: Disable2FA(
+        two_factor_token: 'token',
+        password: 'password'));
+```
+
+### [ NOT YET ALLOWED BY API ] **Log out of all devices**
+```dart
+Future<Response> logout_all({String password}) async
+```
+##### Parameters
+- [String] password = Your password
+
+##### Usage example
+```dart
+await client.api.logout_all(password: 'password');
+```
+
+### [ NOT YET ALLOWED BY API ] **Delete account**
+###### Why would you even try?
+
+```dart
+Future<Response> delete_account({AccountDeletion account_deletion}) async
+```
+##### Parameters
+- [class] AccountDeletion account_deletion
+  - [String] password = Your password
+  - [String] delete_reason = The reason for deletion of account
+  - [String] two_factor_token = If 2FA is enabled, your 2FA token
+
+##### Usage example
+```dart
+await client.api.delete_account(AccountDeletion('password',
+    delete_reason: "ruqqus.dart wasn't good enough",
+    two_factor_token: 'token'));
+```
+
+## *METHODS: Logger*
+###### Provides you with a simple, nice way to log your information.
+
+For debug messages in gray text:
+```dart
+debug(String message)
+```
+
+For success messages in green text:
+```dart
+success(String message)
+```
+
+For info messages in white text:
+```dart
+inform(String message)
+```
+
+For warnings in yellow text:
+```dart
+throwWarning(String message)
+```
+
+For errors in yellow text on red background:
+```dart
+throwError(String message)
 ```
