@@ -93,7 +93,7 @@ await client.api
   .vote(type_of_target: SubmissionType.Post, id: '3kz9', is_up: true);
 ```
 
-### **Edit post / comment**
+### [ NOT ALLOWED BY API ] **Edit post / comment**
 ```dart
 Future<Response> edit({SubmissionType type_of_target, String id, bool isUp}) async
 ```
