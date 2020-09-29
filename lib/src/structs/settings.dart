@@ -35,7 +35,7 @@ class UpdateEmail {
   final String new_email;
   final String password;
 
-  UpdateEmail(this.new_email, this.password);
+  UpdateEmail({this.new_email, this.password});
 }
 
 /// Struct for 2fa enabling
@@ -44,7 +44,7 @@ class Enable2FA {
   final String two_factor_token;
   final String password;
 
-  Enable2FA(this.two_factor_secret, this.two_factor_token, this.password);
+  Enable2FA({this.two_factor_secret, this.two_factor_token, this.password});
 }
 
 /// Struct for 2fa disabling
@@ -52,7 +52,7 @@ class Disable2FA {
   final String two_factor_token;
   final String password;
 
-  Disable2FA(this.two_factor_token, this.password);
+  Disable2FA({this.two_factor_token, this.password});
 }
 
 /// Struct for deleting account

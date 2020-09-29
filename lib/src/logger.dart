@@ -7,7 +7,7 @@ enum Severity { Debug, Success, Info, Warning, Error }
 
 final timeFormat = DateFormat.Hms();
 
-void log(Severity severity, String message) async {
+void log(String message, {Severity severity = Severity.Info}) async {
   AnsiPen pen;
 
   switch (severity) {
@@ -35,10 +35,22 @@ void log(Severity severity, String message) async {
   print('<$time> - ${pen(message)}');
 }
 
-void throwError(String message) {
-  log(Severity.Error, message);
+void debug(String message) {
+  log(message, severity: Severity.Debug);
+}
+
+void success(String message) {
+  log(message, severity: Severity.Success);
+}
+
+void inform(String message) {
+  log(message, severity: Severity.Info);
 }
 
 void throwWarning(String message) {
-  log(Severity.Warning, message);
+  log(message, severity: Severity.Warning);
+}
+
+void throwError(String message) {
+  log(message, severity: Severity.Error);
 }
