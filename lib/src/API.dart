@@ -162,25 +162,13 @@ class API {
   }
 
   /// Delete post/comment
-  Future<dynamic> delete({SubmissionType type_of_target, String id}) async {
-    Response response = await PostRequest(type_of_target == SubmissionType.Post
+  void delete({SubmissionType type_of_target, String id}) async {
+    await PostRequest(type_of_target == SubmissionType.Post
         ? 'delete_post/$id'
         : 'delete/comment/$id');
 
-    Post post;
-    Comment comment;
-
-    if (type_of_target == SubmissionType.Post) {
-      post = Post(this);
-      post.obtainData(null, response.data);
-    } else {
-      comment = Comment(this);
-      comment.obtainData(null, response.data);
-    }
-
     log(Severity.Success,
         'Deleted ${type_of_target == SubmissionType.Post ? 'post' : 'comment'}.');
-    return post ?? comment;
   }
 
   /// Update profile settings
