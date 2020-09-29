@@ -27,7 +27,7 @@ class UpdatePassword {
   final String new_password;
   final String old_password;
 
-  UpdatePassword(this.new_password, this.old_password);
+  UpdatePassword({this.new_password, this.old_password});
 }
 
 /// Struct for new email
