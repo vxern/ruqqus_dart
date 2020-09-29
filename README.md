@@ -154,3 +154,20 @@ await client.api.update_profile_settings(
         bio: 'Replacement biography',
         title_id: 'ID of title here'));
 ```
+
+### [ NOT YET ALLOWED BY API ] **Update Password**
+```dart
+Future<Response> update_password({UpdatePassword update_password}) async
+```
+##### Parameters
+- [class] UpdatePassword update_password
+  - [bool] new_password = Your new password
+  - [bool] old_password = Your old password
+
+##### Usage example
+```dart
+await client.api.update_password(
+    update_password: UpdatePassword(
+        new_password: 'chad*&@#$(1d^'
+        old_password: 'virgin123'));
+```
