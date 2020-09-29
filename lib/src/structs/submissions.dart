@@ -8,8 +8,8 @@ import 'users.dart';
 import 'guilds.dart';
 import 'primary.dart';
 
-/// The submission class. Comprises info about a post or comment
-class Submission extends Primary {
+/// The post class. Comprises info about a post
+class Post extends Primary {
   API api;
 
   Author author;
@@ -19,22 +19,19 @@ class Submission extends Primary {
   SubmissionFlags flags;
   GuildName guild_name;
 
-  void _obtainData(String id,
-      [Map<String, dynamic> suppliedData,
-      SubmissionType submissionType]) async {
+  Post(API api);
+
+  void obtainData(String id, Map<String, dynamic> suppliedData) async {
     Response response;
 
     // If we already have the data for which a get request would have been otherwise needed, use that
     if (suppliedData != null)
       response = Response(data: suppliedData);
     else
-      response = await api.Get(
-          '${submissionType == SubmissionType.Post ? 'post' : 'comment'}/$id',
-          headers: {'sort': 'top'});
+      response = await api.GetRequest('post/$id', headers: {'sort': 'top'});
 
     if (response.data['id'] == null) {
-      throwError(
-          'Could not obtain id of ${submissionType == SubmissionType.Post ? 'post' : 'comment'}!');
+      throwError('Could not obtain id of post!');
       return;
     }
 
@@ -51,6 +48,7 @@ class Submission extends Primary {
         response.data['is_deleted'] == '1' ? true : false,
         response.data['is_nsfw'] == '1' ? true : false,
         response.data['is_nsfl'] == '1' ? true : false,
+        response.data['is_offensive'] == '1' ? true : false,
         edited_at > 0);
 
     author = Author(
@@ -81,19 +79,67 @@ class Submission extends Primary {
   }
 }
 
-class Post extends Submission {
-  Post(API api);
+class Comment extends Primary {
+  API api;
 
-  void obtainData(String id, [Map<String, dynamic> suppliedData]) {
-    _obtainData(id, suppliedData, SubmissionType.Post);
-  }
-}
+  Author author;
+  Body body;
+  Votes votes;
+  int edited_at;
+  SubmissionFlags flags;
+  GuildName guild_name;
 
-class Comment extends Submission {
   Comment(API api);
 
-  void obtainData(String id, [Map<String, dynamic> suppliedData]) {
-    _obtainData(id, suppliedData, SubmissionType.Comment);
+  void obtainData(String id, Map<String, dynamic> suppliedData) async {
+    Response response;
+
+    // If we already have the data for which a get request would have been otherwise needed, use that
+    if (suppliedData != null)
+      response = Response(data: suppliedData);
+    else
+      response = await api.GetRequest('comment/$id', headers: {'sort': 'top'});
+
+    if (response.data['id'] == null) {
+      throwError('Could not obtain id of comment!');
+      return;
+    }
+
+    this.id = response.data['id'];
+    full_id = response.data['fullname'];
+    link = response.data['permalink'];
+    full_link = '$API.website_link$link';
+    created_at = response.data['created_utc'];
+    edited_at = response.data['edited_utc'];
+
+    flags = SubmissionFlags(
+        response.data['is_archived'] == '1' ? true : false,
+        response.data['is_banned'] == '1' ? true : false,
+        response.data['is_deleted'] == '1' ? true : false,
+        response.data['is_nsfw'] == '1' ? true : false,
+        response.data['is_nsfl'] == '1' ? true : false,
+        response.data['is_offensive'] == '1' ? true : false,
+        edited_at > 0);
+
+    author = Author(
+        response.data['author'],
+        response.data['title'] != null
+            ? Title(
+                response.data['title']['text'].startsWith(',')
+                    ? response.data['title']['text'].split(', ')[1]
+                    : response.data['title']['text'],
+                response.data['title']['id'].toString(),
+                response.data['title']['kind'].toString(),
+                response.data['title']['color'].toString())
+            : null);
+
+    body = Body(response.data['body'], response.data['body_html']);
+
+    votes = Votes(response.data['score'], response.data['upvotes'],
+        response.data['downvotes'], response.data['score']);
+
+    guild_name =
+        GuildName(response.data['guild_name'], response.data['guild_name']);
   }
 }
 
@@ -104,10 +150,11 @@ class SubmissionFlags {
   final bool is_deleted;
   final bool is_nsfw;
   final bool is_nsfl;
+  final bool is_offensive;
   final bool is_edited;
 
   SubmissionFlags(this.is_archived, this.is_banned, this.is_deleted,
-      this.is_nsfw, this.is_nsfl, this.is_edited);
+      this.is_nsfw, this.is_nsfl, this.is_offensive, this.is_edited);
 }
 
 /// The content of the post

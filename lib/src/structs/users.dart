@@ -35,7 +35,7 @@ class User extends Primary {
     if (suppliedData != null)
       response = Response(data: suppliedData);
     else
-      response = await api.Get('user/$username');
+      response = await api.GetRequest('user/$username');
 
     if (response.data['id'] == null) {
       throwError('Could not obtain id of user $username!');
@@ -99,10 +99,11 @@ class User extends Primary {
     var result = List<Post>();
 
     // Get all posts on a page
-    Response response = await api.Get('user/$username/listing', headers: {
-      'sort': sort_type.toString().split('.')[1].toLowerCase(),
-      'page': page
-    });
+    Response response = await api.GetRequest('user/$username/listing',
+        headers: {
+          'sort': sort_type.toString().split('.')[1].toLowerCase(),
+          'page': page
+        });
 
     // Converts _InternalLinkedHashMap<String, dynamic> to a List<dynamic> with all the posts
     List<dynamic> posts = Map<String, dynamic>.from(response.data)['data'];

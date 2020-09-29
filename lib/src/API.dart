@@ -3,6 +3,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:ruqqus.dart/src/structs/submissions.dart';
 
 import 'client.dart';
 import 'logger.dart';
@@ -28,7 +29,8 @@ class API {
 
   API(this.client, this.requestData, this.user_agent);
 
-  Future<Response> Get(String path, {Map<String, dynamic> headers}) async {
+  Future<Response> GetRequest(String path,
+      {Map<String, dynamic> headers}) async {
     return await dio.get(
         // Checks whether the path is an API path, or a URI of its own
         path.contains('$website_link')
@@ -41,7 +43,7 @@ class API {
               ..addAll({'Authorization': 'Bearer ${access_token}'})));
   }
 
-  Future<Response> Post(String path,
+  Future<Response> PostRequest(String path,
       {Map<String, dynamic> data, Map<String, dynamic> headers}) async {
     return await dio.post(
         // Checks whether the path is an API path, or a URI of its own
@@ -62,7 +64,7 @@ class API {
 
     try {
       // Make a ruqquest to Ruqqus
-      response = await Post(API.grant_url,
+      response = await PostRequest(API.grant_url,
           data: requestData, headers: {'User-Agent': user_agent});
     } on DioError catch (e) {
       // If not successful, print the error.
@@ -90,38 +92,42 @@ class API {
   // POST
 
   /// Submits a post to a guild with the specified title and body
-  Future<Response> post(
-      {String target_board, String title, String body}) async {
-    Response response = await Post('submit',
+  Future<Post> post({String target_board, String title, String body}) async {
+    Response response = await PostRequest('submit',
         data: {'board': target_board, 'title': title, 'body': body});
+
+    Post post = Post(this);
+    post.obtainData(null, response.data);
 
     if (response.data['guild_name'] == 'general' && target_board != 'general') {
       throwWarning(
           'As the guild name you provided is not valid, the post has been submitted to +general.');
-      return response;
+      return post;
     }
 
     log(Severity.Success, 'Post submitted.');
-    return response;
+    return post;
   }
 
   /// Submits a reply under a parent with the specified body
-  Future<Response> reply(
+  Future<Comment> reply(
       {SubmissionType type_of_target, String id, String body}) async {
-    Response response = await Post('comment', data: {
+    Response response = await PostRequest('comment', data: {
       'parent_fullname':
           '${type_of_target == SubmissionType.Post ? 't2' : 't3'}_$id',
       'body': body
     });
 
+    Comment comment = Comment(this);
+    await comment.obtainData(null, response.data);
+
     log(Severity.Success, 'Reply submitted.');
-    return response;
+    return comment;
   }
 
   /// Upvote/downvote, is_up:true = upvote, is_up:false = downvote, is_up:null = remove vote
-  Future<Response> vote(
-      {SubmissionType type_of_target, String id, bool is_up}) async {
-    Response response = await Post(
+  void vote({SubmissionType type_of_target, String id, bool is_up}) async {
+    await PostRequest(
         'vote/${type_of_target == SubmissionType.Post ? 'post' : 'comment'}/$id/${is_up == null ? 0 : (is_up ? 1 : -1)}');
 
     log(
@@ -130,36 +136,58 @@ class API {
                 ? 'Removed vote from '
                 : (is_up ? 'Upvoted ' : 'Downvoted ')) +
             '${type_of_target == SubmissionType.Post ? 'post' : 'comment'}.');
-    return response;
   }
 
   /// Edit post/comment and supplant body with the provided body
-  Future<Response> edit(
+  Future<dynamic> edit(
       {SubmissionType type_of_target, String id, String body}) async {
-    Response response = await Post(
+    Response response = await PostRequest(
         '${API.website_link}/${type_of_target == SubmissionType.Post ? 'edit_post' : 'edit_comment'}/$id',
         data: {'body': body});
 
+    Post post;
+    Comment comment;
+
+    if (type_of_target == SubmissionType.Post) {
+      post = Post(this);
+      post.obtainData(null, response.data);
+    } else {
+      comment = Comment(this);
+      comment.obtainData(null, response.data);
+    }
+
     log(Severity.Success,
         'Edited ${type_of_target == SubmissionType.Post ? 'post' : 'comment'}.');
-    return response;
+    return post ?? comment;
   }
 
   /// Delete post/comment
-  Future<Response> delete({SubmissionType type_of_target, String id}) async {
-    Response response = await Post(type_of_target == SubmissionType.Post
+  Future<dynamic> delete({SubmissionType type_of_target, String id}) async {
+    Response response = await PostRequest(type_of_target == SubmissionType.Post
         ? 'delete_post/$id'
         : 'delete/comment/$id');
 
+    Post post;
+    Comment comment;
+
+    if (type_of_target == SubmissionType.Post) {
+      post = Post(this);
+      post.obtainData(null, response.data);
+    } else {
+      comment = Comment(this);
+      comment.obtainData(null, response.data);
+    }
+
     log(Severity.Success,
         'Deleted ${type_of_target == SubmissionType.Post ? 'post' : 'comment'}.');
-    return response;
+    return post ?? comment;
   }
 
   /// Update profile settings
   Future<Response> update_profile_settings(
       {ProfileSettings profile_settings}) async {
-    Response response = await Post('$website_link/settings/profile', data: {
+    Response response =
+        await PostRequest('$website_link/settings/profile', data: {
       'over18': profile_settings.over_18,
       'hide_offensive': profile_settings.hide_offensive,
       'show_nsfl': profile_settings.show_nsfl,
@@ -176,7 +204,8 @@ class API {
 
   /// Update password
   Future<Response> update_password({UpdatePassword update_password}) async {
-    Response response = await Post('$website_link/settings/security', headers: {
+    Response response =
+        await PostRequest('$website_link/settings/security', headers: {
       'new_password': update_password.new_password,
       'cnf_password': update_password.new_password,
       'old_password': update_password.old_password
@@ -188,10 +217,11 @@ class API {
 
   /// Update email
   Future<Response> update_email({UpdateEmail update_email}) async {
-    Response response = await Post('$website_link/settings/security', headers: {
-      'new_email': update_email.new_email,
-      'password': update_email.password
-    });
+    Response response = await PostRequest('$website_link/settings/security',
+        headers: {
+          'new_email': update_email.new_email,
+          'password': update_email.password
+        });
 
     log(Severity.Success, 'Updated password!');
     return response;
@@ -199,7 +229,8 @@ class API {
 
   /// Enable 2FA
   Future<Response> enable_2fa({Enable2FA enable2fa}) async {
-    Response response = await Post('$website_link/settings/security', headers: {
+    Response response =
+        await PostRequest('$website_link/settings/security', headers: {
       '2fa_token': enable2fa.two_factor_token,
       '2fa_secret': enable2fa.two_factor_secret,
       'password': enable2fa.password,
@@ -211,7 +242,8 @@ class API {
 
   /// Disable 2FA
   Future<Response> disable_2fa({Disable2FA disable2fa}) async {
-    Response response = await Post('$website_link/settings/security', headers: {
+    Response response =
+        await PostRequest('$website_link/settings/security', headers: {
       '2fa_remove': disable2fa.two_factor_token,
       'password': disable2fa.password,
     });
@@ -222,10 +254,11 @@ class API {
 
   /// Logs all other devices out
   Future<Response> logout_all({String password}) async {
-    Response response =
-        await Post('$website_link/settings/log_out_all_others', headers: {
-      'password': password,
-    });
+    Response response = await PostRequest(
+        '$website_link/settings/log_out_all_others',
+        headers: {
+          'password': password,
+        });
 
     log(Severity.Success, 'All other devices have been logged out');
     return response;
@@ -234,7 +267,7 @@ class API {
   /// Deletes account ( This action cannot be reversed! )
   Future<Response> delete_account({AccountDeletion account_deletion}) async {
     Response response =
-        await Post('$website_link/settings/delete_account', headers: {
+        await PostRequest('$website_link/settings/delete_account', headers: {
       'password': account_deletion.password,
       'delete_reason': account_deletion.delete_reason,
       'twofactor': account_deletion.two_factor_token,
@@ -246,7 +279,7 @@ class API {
 
   /// Subscribes to a user
   Future<Response> follow({String username}) async {
-    Response response = await Post('$website_link/api/follow/$username');
+    Response response = await PostRequest('$website_link/api/follow/$username');
 
     log(Severity.Success, 'Followed user $username.');
     return response;
@@ -254,7 +287,8 @@ class API {
 
   /// Unsubscribes from a user
   Future<Response> unfollow({String username}) async {
-    Response response = await Post('$website_link/api/unfollow/$username');
+    Response response =
+        await PostRequest('$website_link/api/unfollow/$username');
 
     log(Severity.Success, 'Unfollowed user $username.');
     return response;
@@ -262,7 +296,7 @@ class API {
 
   /// Agrees to the ToS
   Future<Response> agree_tos() async {
-    Response response = await Post('$website_link/api/agree_tos');
+    Response response = await PostRequest('$website_link/api/agree_tos');
 
     log(Severity.Success, 'Agreed to ToS.');
     return response;

@@ -26,7 +26,7 @@ class Guild extends Primary {
     if (suppliedData != null)
       response = Response(data: suppliedData);
     else
-      response = await api.Get('guild/$name');
+      response = await api.GetRequest('guild/$name');
 
     name = response.data['name'];
     id = response.data['id'];
@@ -57,7 +57,7 @@ class Guild extends Primary {
     var result = List<Post>();
 
     // Get all posts on a page
-    Response response = await api.Get('guild/$name/listing', headers: {
+    Response response = await api.GetRequest('guild/$name/listing', headers: {
       'sort': sort_type.toString().split('.')[1].toLowerCase(),
       'page': page
     });
