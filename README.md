@@ -1,4 +1,4 @@
-# Ruqqus.dart
+# Ruqqus.dart ( 1.0.0 )
 ### A powerful Dart library for interacting with the Ruqqus API.
 
 ## Usage
