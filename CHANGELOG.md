@@ -6,3 +6,7 @@
 ## 1.0.1
 
 - Renamed from ruqqus.dart to ruqqus_dart
+
+## 1.0.2
+
+- Beautifying the code
