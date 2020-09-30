@@ -26,7 +26,7 @@ class Client {
       'client_id': client_id,
       'client_secret': client_secret,
       'grant_type': 'refresh',
-      'refresh_token': refresh_token ?? null
+      'refresh_token': refresh_token
     };
 
     api = API(this, requestData, user_agent);
@@ -40,7 +40,7 @@ class Client {
       String state,
       List<String> scopes,
       bool is_permanent}) async {
-    String scope = scopes.join(',');
+    var scope = scopes.join(',');
 
     return '${API.website_link}/oauth/authorize?client_id=$client_id&redirect_uri=$redirect_uri&state=${state ?? 'ruqqus'}&scope=$scope&permanent=$is_permanent';
   }

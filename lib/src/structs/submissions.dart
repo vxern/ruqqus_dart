@@ -25,10 +25,11 @@ class Post extends Primary {
     Response response;
 
     // If we already have the data for which a get request would have been otherwise needed, use that
-    if (suppliedData != null)
+    if (suppliedData != null) {
       response = Response(data: suppliedData);
-    else
+    } else {
       response = await api.GetRequest('post/$id', headers: {'sort': 'top'});
+    }
 
     if (response.data['id'] == null) {
       throwError('Could not obtain id of post!');
@@ -95,10 +96,11 @@ class Comment extends Primary {
     Response response;
 
     // If we already have the data for which a get request would have been otherwise needed, use that
-    if (suppliedData != null)
+    if (suppliedData != null) {
       response = Response(data: suppliedData);
-    else
+    } else {
       response = await api.GetRequest('comment/$id', headers: {'sort': 'top'});
+    }
 
     if (response.data['id'] == null) {
       throwError('Could not obtain id of comment!');

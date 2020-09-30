@@ -7,6 +7,7 @@
 # linter:
 #   rules:
 #     - camel_case_types
+include: package:pedantic/analysis_options.yaml
 
 analyzer:
 #   exclude:

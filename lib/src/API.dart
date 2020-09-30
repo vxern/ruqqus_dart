@@ -19,8 +19,8 @@ class API {
   Map<String, dynamic> requestData;
 
   // Useful links and components of the URI
-  static const String website_link = "https://ruqqus.com";
-  static const String api_version = "api/v1";
+  static const String website_link = 'https://ruqqus.com';
+  static const String api_version = 'api/v1';
   static const String grant_url = '$website_link/oauth/grant';
 
   // Controls
@@ -90,7 +90,7 @@ class API {
   /// Ruqqus: "Access tokens expire one hour after they are issued.
   /// To maintain ongoing access, you will need to use the refresh token to obtain a new access token."
   void obtainToken() async {
-    Response response = await PostRequest(API.grant_url,
+    var response = await PostRequest(API.grant_url,
         data: requestData, headers: {'User-Agent': user_agent});
 
     // Build next ruqquest
@@ -118,10 +118,10 @@ class API {
       throwWarning('<post> Title or body is missing.');
     }
 
-    Response response = await PostRequest('submit',
+    var response = await PostRequest('submit',
         data: {'board': target_board, 'title': title, 'body': body});
 
-    Post post = Post(this);
+    var post = Post(this);
     post.obtainData(null, response.data);
 
     if (response.data['guild_name'] == 'general' &&
@@ -138,13 +138,13 @@ class API {
   /// Submits a reply under a parent with the specified body
   Future<Comment> reply(
       {SubmissionType type_of_target, String id, String body}) async {
-    Response response = await PostRequest('comment', data: {
+    var response = await PostRequest('comment', data: {
       'parent_fullname':
           '${type_of_target == SubmissionType.Post ? 't2' : 't3'}_$id',
       'body': body
     });
 
-    Comment comment = Comment(this);
+    var comment = Comment(this);
     await comment.obtainData(null, response.data);
 
     success('<reply> Reply submitted.');
@@ -166,7 +166,7 @@ class API {
   /// Edit post/comment and supplant body with the provided body
   Future<dynamic> edit(
       {SubmissionType type_of_target, String id, String body}) async {
-    Response response = await PostRequest(
+    var response = await PostRequest(
         '${API.website_link}/${type_of_target == SubmissionType.Post ? 'edit_post' : 'edit_comment'}/$id',
         data: {'body': body});
 
@@ -199,8 +199,7 @@ class API {
   /// Update profile settings
   Future<Response> update_profile_settings(
       {ProfileSettings profile_settings}) async {
-    Response response =
-        await PostRequest('$website_link/settings/profile', data: {
+    var response = await PostRequest('$website_link/settings/profile', data: {
       'over18': profile_settings.over_18,
       'hide_offensive': profile_settings.hide_offensive,
       'show_nsfl': profile_settings.show_nsfl,
@@ -217,7 +216,7 @@ class API {
 
   /// Update password
   Future<Response> update_password({UpdatePassword update_password}) async {
-    Response response =
+    var response =
         await PostRequest('$website_link/settings/security', headers: {
       'new_password': update_password.new_password,
       'cnf_password': update_password.new_password,
@@ -230,7 +229,7 @@ class API {
 
   /// Update email
   Future<Response> update_email({UpdateEmail update_email}) async {
-    Response response = await PostRequest('$website_link/settings/security',
+    var response = await PostRequest('$website_link/settings/security',
         headers: {
           'new_email': update_email.new_email,
           'password': update_email.password
@@ -242,7 +241,7 @@ class API {
 
   /// Enable 2FA
   Future<Response> enable_2fa({Enable2FA enable_2fa}) async {
-    Response response =
+    var response =
         await PostRequest('$website_link/settings/security', headers: {
       '2fa_token': enable_2fa.two_factor_token,
       '2fa_secret': enable_2fa.two_factor_secret,
@@ -255,7 +254,7 @@ class API {
 
   /// Disable 2FA
   Future<Response> disable_2fa({Disable2FA disable_2fa}) async {
-    Response response =
+    var response =
         await PostRequest('$website_link/settings/security', headers: {
       '2fa_remove': disable_2fa.two_factor_token,
       'password': disable_2fa.password,
@@ -267,7 +266,7 @@ class API {
 
   /// Logs all other devices out
   Future<Response> logout_all({String password}) async {
-    Response response = await PostRequest(
+    var response = await PostRequest(
         '$website_link/settings/log_out_all_others',
         headers: {
           'password': password,
@@ -280,7 +279,7 @@ class API {
   /// Deletes account. This cannot be undone!
   Future<Response> delete_account(AccountDeletion accountDeletion,
       {AccountDeletion account_deletion}) async {
-    Response response =
+    var response =
         await PostRequest('$website_link/settings/delete_account', headers: {
       'password': account_deletion.password,
       'delete_reason': account_deletion.delete_reason,
@@ -293,7 +292,7 @@ class API {
 
   /// Subscribes to a user
   Future<Response> follow({String username}) async {
-    Response response = await PostRequest('$website_link/api/follow/$username');
+    var response = await PostRequest('$website_link/api/follow/$username');
 
     success('<follow> Followed user $username.');
     return response;
@@ -301,8 +300,7 @@ class API {
 
   /// Unsubscribes from a user
   Future<Response> unfollow({String username}) async {
-    Response response =
-        await PostRequest('$website_link/api/unfollow/$username');
+    var response = await PostRequest('$website_link/api/unfollow/$username');
 
     success('<unfollow> Unfollowed user $username.');
     return response;

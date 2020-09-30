@@ -32,10 +32,11 @@ class User extends Primary {
     Response response;
 
     // If we already have the data for which a get request would have been otherwise needed, use that
-    if (suppliedData != null)
+    if (suppliedData != null) {
       response = Response(data: suppliedData);
-    else
+    } else {
       response = await api.GetRequest('user/$username');
+    }
 
     if (response.data['id'] == null) {
       throwError('Could not obtain id of user $username!');
@@ -86,7 +87,7 @@ class User extends Primary {
         ? '$API.website_link${response.data['banner_url']}'
         : response.data['banner_url'];
 
-    badges = List<Badge>();
+    badges = <Badge>[];
     for (dynamic entry in response.data['badges']) {
       badges.add(Badge(
           entry['name'], entry['text'], entry['url'], entry['created_utc']));
@@ -96,21 +97,20 @@ class User extends Primary {
   /// Gets and returns a list of 'Post' structs.
   Future<List<Post>> obtainPosts(
       {SortType sort_type = SortType.Hot, int page = 1}) async {
-    var result = List<Post>();
+    var result = <Post>[];
 
     // Get all posts on a page
-    Response response = await api.GetRequest('user/$username/listing',
-        headers: {
-          'sort': sort_type.toString().split('.')[1].toLowerCase(),
-          'page': page
-        });
+    var response = await api.GetRequest('user/$username/listing', headers: {
+      'sort': sort_type.toString().split('.')[1].toLowerCase(),
+      'page': page
+    });
 
     // Converts _InternalLinkedHashMap<String, dynamic> to a List<dynamic> with all the posts
     List<dynamic> posts = Map<String, dynamic>.from(response.data)['data'];
 
     // Iterates through list of
     for (Map<String, dynamic> entry in posts) {
-      Post post = Post(api);
+      var post = Post(api);
       post.obtainData(null, entry);
       result.add(post);
     }

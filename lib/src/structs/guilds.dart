@@ -23,10 +23,11 @@ class Guild extends Primary {
     Response response;
 
     // If we already have the data for which a get request would have been otherwise needed, use that
-    if (suppliedData != null)
+    if (suppliedData != null) {
       response = Response(data: suppliedData);
-    else
+    } else {
       response = await api.GetRequest('guild/$name');
+    }
 
     name = response.data['name'];
     id = response.data['id'];
@@ -54,10 +55,10 @@ class Guild extends Primary {
   /// Gets and returns a list of 'Post' structs that belong to this guild
   Future<List<Post>> obtainPosts(
       SortType sort_type, int page, int quantity) async {
-    var result = List<Post>();
+    var result = <Post>[];
 
     // Get all posts on a page
-    Response response = await api.GetRequest('guild/$name/listing', headers: {
+    var response = await api.GetRequest('guild/$name/listing', headers: {
       'sort': sort_type.toString().split('.')[1].toLowerCase(),
       'page': page
     });
@@ -67,7 +68,7 @@ class Guild extends Primary {
 
     // Iterates through list of
     for (Map<String, dynamic> entry in posts) {
-      Post post = Post(api);
+      var post = Post(api);
       post.obtainData(null, entry);
       result.add(post);
     }
