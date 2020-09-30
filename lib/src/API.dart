@@ -3,7 +3,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:ruqqus.dart/src/structs/submissions.dart';
+import 'package:ruqqus_dart/src/structs/submissions.dart';
 
 import 'client.dart';
 import 'logger.dart';
@@ -166,9 +166,6 @@ class API {
   /// Edit post/comment and supplant body with the provided body
   Future<dynamic> edit(
       {SubmissionType type_of_target, String id, String body}) async {
-    throwError('<edit> This method is not yet supported by the API!');
-    return null;
-
     Response response = await PostRequest(
         '${API.website_link}/${type_of_target == SubmissionType.Post ? 'edit_post' : 'edit_comment'}/$id',
         data: {'body': body});
@@ -202,10 +199,6 @@ class API {
   /// Update profile settings
   Future<Response> update_profile_settings(
       {ProfileSettings profile_settings}) async {
-    throwError(
-        '<update_profile_settings> This method is not yet supported by the API!');
-    return null;
-
     Response response =
         await PostRequest('$website_link/settings/profile', data: {
       'over18': profile_settings.over_18,
@@ -224,10 +217,6 @@ class API {
 
   /// Update password
   Future<Response> update_password({UpdatePassword update_password}) async {
-    throwError(
-        '<update_password> This method is not yet supported by the API!');
-    return null;
-
     Response response =
         await PostRequest('$website_link/settings/security', headers: {
       'new_password': update_password.new_password,
@@ -241,9 +230,6 @@ class API {
 
   /// Update email
   Future<Response> update_email({UpdateEmail update_email}) async {
-    throwError('<update_email> This method is not yet supported by the API!');
-    return null;
-
     Response response = await PostRequest('$website_link/settings/security',
         headers: {
           'new_email': update_email.new_email,
@@ -256,9 +242,6 @@ class API {
 
   /// Enable 2FA
   Future<Response> enable_2fa({Enable2FA enable_2fa}) async {
-    throwError('<enable_2fa> This method is not yet supported by the API!');
-    return null;
-
     Response response =
         await PostRequest('$website_link/settings/security', headers: {
       '2fa_token': enable_2fa.two_factor_token,
@@ -272,9 +255,6 @@ class API {
 
   /// Disable 2FA
   Future<Response> disable_2fa({Disable2FA disable_2fa}) async {
-    throwError('<disable_2fa> This method is not yet supported by the API!');
-    return null;
-
     Response response =
         await PostRequest('$website_link/settings/security', headers: {
       '2fa_remove': disable_2fa.two_factor_token,
@@ -287,9 +267,6 @@ class API {
 
   /// Logs all other devices out
   Future<Response> logout_all({String password}) async {
-    throwError('<logout_all> This method is not yet supported by the API!');
-    return null;
-
     Response response = await PostRequest(
         '$website_link/settings/log_out_all_others',
         headers: {
@@ -303,9 +280,6 @@ class API {
   /// Deletes account. This cannot be undone!
   Future<Response> delete_account(AccountDeletion accountDeletion,
       {AccountDeletion account_deletion}) async {
-    throwError('<delete_account> This method is not yet supported by the API!');
-    return null;
-
     Response response =
         await PostRequest('$website_link/settings/delete_account', headers: {
       'password': account_deletion.password,
@@ -319,9 +293,6 @@ class API {
 
   /// Subscribes to a user
   Future<Response> follow({String username}) async {
-    throwError('<follow> This method is not yet supported by the API!');
-    return null;
-
     Response response = await PostRequest('$website_link/api/follow/$username');
 
     success('<follow> Followed user $username.');
@@ -330,9 +301,6 @@ class API {
 
   /// Unsubscribes from a user
   Future<Response> unfollow({String username}) async {
-    throwError('<unfollow> This method is not yet supported by the API!');
-    return null;
-
     Response response =
         await PostRequest('$website_link/api/unfollow/$username');
 

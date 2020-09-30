@@ -1,7 +1,7 @@
 // structs/guilds.dart - Comprises structs for data about guilds
 
 import 'package:dio/dio.dart';
-import 'package:ruqqus.dart/ruqqus.dart';
+import 'package:ruqqus_dart/ruqqus_dart.dart';
 
 import 'primary.dart';
 

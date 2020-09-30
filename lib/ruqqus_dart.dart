@@ -1,4 +1,4 @@
-library ruqqus;
+library ruqqus_dart;
 
 export 'src/structs/guilds.dart';
 export 'src/structs/primary.dart';

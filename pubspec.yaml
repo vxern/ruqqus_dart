@@ -1,6 +1,6 @@
-name: ruqqus.dart
+name: ruqqus_dart
 description: A powerful Dart library for interacting with the Ruqqus API.
-version: 1.0.0
+version: 1.0.1
 
 environment:
   sdk: '>=2.8.1 <3.0.0'
