@@ -1,7 +1,5 @@
 // API.dart - Main file for interacting with the API
 
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:ruqqus_dart/src/structs/submissions.dart';
 
@@ -51,7 +49,7 @@ class API {
       // If not successful, print the error.
       if (!(e.response.statusCode >= 200 && e.response.statusCode <= 299)) {
         throwError('${e.response.statusCode} - ${e.response.statusMessage}');
-        exit;
+        return null;
       }
     }
 
@@ -80,7 +78,7 @@ class API {
       // If not successful, print the error.
       if (!(e.response.statusCode >= 200 && e.response.statusCode <= 299)) {
         throwError('${e.response.statusCode} - ${e.response.statusMessage}');
-        exit;
+        return null;
       }
     }
 
@@ -97,9 +95,9 @@ class API {
     access_token = response.data['access_token'];
 
     // Set up client and start refreshing
-    if (!client.isReady) {
-      client.isReady = true;
-      client.streamController.add('ready');
+    if (!client.is_ready) {
+      client.is_ready = true;
+      client.emit('ready');
     }
 
     success('<obtainToken> Token obtained!');

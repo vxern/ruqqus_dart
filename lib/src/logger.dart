@@ -7,7 +7,7 @@ enum Severity { Debug, Success, Info, Warning, Error }
 
 final timeFormat = DateFormat.Hms();
 
-void log(String message, {Severity severity = Severity.Info}) async {
+void log(dynamic message, {Severity severity = Severity.Info}) async {
   AnsiPen pen;
 
   switch (severity) {
@@ -32,25 +32,25 @@ void log(String message, {Severity severity = Severity.Info}) async {
   }
 
   var time = timeFormat.format(DateTime.now());
-  print('<$time> - ${pen(message)}');
+  print('<$time> - ${pen(message.toString())}');
 }
 
-void debug(String message) {
+void debug(dynamic message) {
   log(message, severity: Severity.Debug);
 }
 
-void success(String message) {
+void success(dynamic message) {
   log(message, severity: Severity.Success);
 }
 
-void inform(String message) {
+void inform(dynamic message) {
   log(message, severity: Severity.Info);
 }
 
-void throwWarning(String message) {
+void throwWarning(dynamic message) {
   log(message, severity: Severity.Warning);
 }
 
-void throwError(String message) {
+void throwError(dynamic message) {
   log(message, severity: Severity.Error);
 }

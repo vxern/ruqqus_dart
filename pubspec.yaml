@@ -8,8 +8,6 @@ environment:
 dependencies:
   ansicolor: ^1.0.5
   dio: ^3.0.10
+  event_dart: ^1.0.0
   intl: ^0.16.1
-
-dev_dependencies:
-  pedantic: ^1.9.0
 
