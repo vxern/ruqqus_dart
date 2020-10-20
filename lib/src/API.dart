@@ -44,7 +44,12 @@ class API {
               // If no headers have been provided, the access token is used instead
               headers: {}
                 ..addAll(headers ?? {})
-                ..addAll({'Authorization': 'Bearer ${access_token}'})));
+                ..addAll({
+                  'Authorization': 'Bearer ${access_token}',
+                  'X-User-Type': 'Bot',
+                  'X-Library': 'ruqqus.dart',
+                  'X-Supports': 'auth'
+                })));
     } on DioError catch (e) {
       // If not successful, print the error.
       if (!(e.response.statusCode >= 200 && e.response.statusCode <= 299)) {
@@ -147,18 +152,6 @@ class API {
 
     success('<reply> Reply submitted.');
     return comment;
-  }
-
-  /// Upvote/downvote, is_up:true = upvote, is_up:false = downvote, is_up:null = remove vote
-  void vote({SubmissionType type_of_target, String id, bool is_up}) async {
-    await PostRequest(
-        'vote/${type_of_target == SubmissionType.Post ? 'post' : 'comment'}/$id/${is_up == null ? 0 : (is_up ? 1 : -1)}');
-
-    success('<vote> ' +
-        (is_up == null
-            ? 'Removed vote from '
-            : (is_up ? 'Upvoted ' : 'Downvoted ')) +
-        '${type_of_target == SubmissionType.Post ? 'post' : 'comment'}.');
   }
 
   /// Edit post/comment and supplant body with the provided body
