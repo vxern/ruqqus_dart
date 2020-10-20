@@ -15,3 +15,8 @@
 
 - Replacing stream with the library 'event_dart'
 - Addition of scanning for new posts and comments
+
+## 2.0.1
+
+- Removal of voting function
+- Addition of new headers
