@@ -78,7 +78,13 @@ class API {
           data: FormData.fromMap(data ?? {}),
           options: Options(
               // If no headers have been provided, the access token is used instead
-              headers: headers ?? {'Authorization': 'Bearer ${access_token}'}));
+              headers: headers ??
+                  {
+                    'Authorization': 'Bearer ${access_token}',
+                    'X-User-Type': 'Bot',
+                    'X-Library': 'ruqqus.dart',
+                    'X-Supports': 'auth'
+                  }));
     } on DioError catch (e) {
       // If not successful, print the error.
       if (!(e.response.statusCode >= 200 && e.response.statusCode <= 299)) {
