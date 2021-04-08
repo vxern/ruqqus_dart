@@ -1,5 +1,5 @@
-# Ruqqus.dart [2.0.1]
-### A powerful Dart library for interacting with the Ruqqus API.
+# Ruqqus.dart [2.0.2]
+### A powerful Ruqqus API wrapper written entirely in Dart.
 
 ## Usage
 
