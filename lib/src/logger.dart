@@ -5,9 +5,10 @@ import 'package:intl/intl.dart';
 
 enum Severity { Debug, Success, Info, Warning, Error }
 
-final timeFormat = DateFormat.Hms();
+final DateFormat timeFormat = DateFormat.Hms();
 
-void log(dynamic message, {Severity severity = Severity.Info}) async {
+// Assigns a colour to a severity and outputs a message once formatted
+void log(dynamic message, {Severity severity = Severity.Info}) {
   AnsiPen pen;
 
   switch (severity) {
@@ -31,26 +32,15 @@ void log(dynamic message, {Severity severity = Severity.Info}) async {
       break;
   }
 
-  var time = timeFormat.format(DateTime.now());
-  print('<$time> - ${pen(message.toString())}');
+  String time = timeFormat.format(DateTime.now());
+  String coloredString = pen(message.toString());
+  
+  print('<$time> - ${coloredString}');
 }
 
-void debug(dynamic message) {
-  log(message, severity: Severity.Debug);
-}
-
-void success(dynamic message) {
-  log(message, severity: Severity.Success);
-}
-
-void inform(dynamic message) {
-  log(message, severity: Severity.Info);
-}
-
-void throwWarning(dynamic message) {
-  log(message, severity: Severity.Warning);
-}
-
-void throwError(dynamic message) {
-  log(message, severity: Severity.Error);
-}
+// Interfaces for the log command
+void debug(dynamic message) => log(message, severity: Severity.Debug);
+void success(dynamic message) => log(message, severity: Severity.Success);
+void inform(dynamic message) => log(message, severity: Severity.Info);
+void throwWarning(dynamic message) => log(message, severity: Severity.Warning);
+void throwError(dynamic message) => log(message, severity: Severity.Error);
