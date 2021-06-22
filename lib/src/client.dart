@@ -1,123 +1,142 @@
-// client.dart - The face of ruqqus.dart
-
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:event_dart/event_dart.dart';
-import 'package:ruqqus_dart/ruqqus_dart.dart';
+import 'package:sprint/sprint.dart';
 
-import 'API.dart';
+import 'package:ruqqus_dart/src/API.dart';
+import 'package:ruqqus_dart/src/structs/primary.dart';
+import 'package:ruqqus_dart/src/structs/submissions.dart';
 
-class Client extends EventEmitter {
-  // API Handler
-  API api;
+class Client with EventEmitter {
+  final Sprint log = Sprint('Client');
 
-  // HTTP Request Data
-  Map<String, dynamic> requestData;
+  late final API api;
 
-  // Controls
-  bool is_ready = false;
-  bool is_listening_for_posts = false;
-  bool is_listening_for_comments = false;
+  late final Map<String, String> refreshData;
 
-  // Accumulators
-  var accumulate_post_ids = <String>[];
-  var accumulate_comment_ids = <String>[];
+  String? accessToken;
 
-  Client(
-      {String client_id,
-      String client_secret,
-      String refresh_token,
-      String user_agent}) {
-    requestData = {
-      'client_id': client_id,
-      'client_secret': client_secret,
+  /// Indicates whether the client is ready to interact with the API
+  bool isActive = false;
+
+  /// Minimum interval between read requests
+  static const Duration minimumReadInterval = const Duration(minutes: 1);
+
+  /// Minimum interval between write requests
+  static const Duration minimumWriteInterval = const Duration(seconds: 3);
+
+  Client({
+    required String clientId,
+    required String clientSecret,
+    required String refreshToken,
+    String userAgent = 'Project utilizing ruqqus.dart',
+    bool quietMode = false,
+  }) {
+    refreshData = {
+      'client_id': clientId,
+      'client_secret': clientSecret,
       'grant_type': 'refresh',
-      'refresh_token': refresh_token
+      'refresh_token': refreshToken,
     };
 
-    api = API(this, requestData, user_agent);
-    api.obtainToken();
+    log.quietMode = quietMode;
+
+    api = API(this, refreshData, userAgent, quietMode: quietMode);
   }
 
-  /// Begins listening for posts at an interval and emits 'post' when a post appears
-  void listenForPosts({Duration interval}) async {
-    is_listening_for_posts = true;
+  /// Ruqqus: "Access tokens expire one hour after they are issued.
+  /// To maintain ongoing access, you will need to use the refresh token to obtain a new access token."
+  Future login() async {
+    final response = await api.post(API.grantUrl, body: refreshData);
 
-    // Get all posts in /all
-    var response =
-        await api.GetRequest('all/listing', headers: {'sort': 'new'});
-
-    // Converts _InternalLinkedHashMap<String, dynamic> to a List<dynamic> with all the posts
-    List<dynamic> posts = Map<String, dynamic>.from(response.data)['data'];
-
-    // Iterates through list of posts
-    for (Map<String, dynamic> entry in posts) {
-      if (accumulate_post_ids.contains(entry['id'])) {
-        continue;
-      }
-
-      var post = Post(api);
-      post.obtainData(null, entry);
-      emit('post', post);
-      accumulate_post_ids.add(post.id);
+    if (response == null) {
+      log.warning('Failed to obtain access token');
+      return;
     }
 
-    Future.delayed(interval ?? Duration(minutes: 1), () {
-      if (is_listening_for_posts) {
-        listenForPosts();
-      }
+    final body = jsonDecode(response.body);
+
+    accessToken = body['access_token']!;
+
+    if (!isActive) {
+      isActive = true;
+
+      emit('ready');
+      log.success('The bot is ready to interact with the Ruqqus API');
+    } else {
+      log.success('Refreshed bot access token');
+    }
+
+    Future.delayed(Duration(minutes: 59, seconds: 55), () {
+      login();
     });
   }
 
-  /// Stops listening for posts
-  void stopListeningPosts() {
-    is_listening_for_posts = false;
-  }
-
-  /// Begins listening for comments at an interval and emits 'comment' when a post appears
-  void listenForComments({Duration interval}) async {
-    is_listening_for_comments = true;
-
-    // Get all posts in /all
-    var response =
-        await api.GetRequest('front/comments', headers: {'sort': 'new'});
-
-    // Converts _InternalLinkedHashMap<String, dynamic> to a List<dynamic> with all the posts
-    List<dynamic> comments = Map<String, dynamic>.from(response.data)['data'];
-
-    // Iterates through list of posts
-    for (Map<String, dynamic> entry in comments) {
-      if (accumulate_comment_ids.contains(entry['id'])) {
-        continue;
-      }
-
-      var comment = Comment(api);
-      comment.obtainData(null, entry);
-      emit('comment', comment);
-      accumulate_comment_ids.add(comment.id);
+  /// Begins listening for submissions at with a delay [listeningDelay]
+  ///
+  /// [listeningDelay] must be longer than 1 minute to prevent flooding the Ruqqus servers
+  Stream<Primary> listenForSubmissions<Submission extends Primary>({
+    Duration listeningDelay = minimumReadInterval,
+    List<String> accumulatedIds = const [],
+  }) async* {
+    if (listeningDelay.inSeconds < minimumReadInterval.inSeconds) {
+      log.warning(
+        'The provided interval does not meet the minimum duration of ${minimumReadInterval.inMinutes}'
+        ' minute and has been automatically adjusted to it.',
+      );
+      listeningDelay = minimumReadInterval;
     }
 
-    Future.delayed(interval ?? Duration(minutes: 1), () {
-      if (is_listening_for_comments) {
-        listenForComments();
+    Timer.periodic(listeningDelay, (timer) async* {
+      // Get all entries in /all
+      final response = await api.get(
+        Submission is Post ? '/all/listing' : '/front/comments',
+        headers: {'sort': 'new'},
+      );
+
+      if (response == null) {
+        log.warning('Failed to fetch most recent submissions');
+        return;
+      }
+
+      final body = jsonDecode(response.body);
+
+      // Converts _InternalLinkedHashMap<String, dynamic> to a List<dynamic>
+      List<dynamic> receivedEntries = Map<String, dynamic>.from(body)['data'];
+
+      // Iterates through the list of entries
+      for (Map<String, dynamic> receivedEntry in receivedEntries) {
+        // If the entry has already been seen before, ignore it
+        if (accumulatedIds.contains(receivedEntry['id'])) {
+          continue;
+        }
+
+        // Create an entry and stream the response
+        final Primary entry = Submission is Post
+            ? Post.from(api, receivedEntry)
+            : Comment.from(api, receivedEntry);
+        yield entry;
+        accumulatedIds.add(entry.id!);
       }
     });
-  }
-
-  /// Stops listening for comments
-  void stopListeningComments() {
-    is_listening_for_posts = false;
   }
 
   /// Constructs an authentication link
-  static Future<String> obtainAuthURL(
-      {String client_id,
-      String redirect_uri,
-      String state,
-      List<String> scopes,
-      bool is_permanent}) async {
+  static String obtainAuthURL({
+    required String clientId,
+    required String redirectUri,
+    String state = 'ruqqus',
+    required List<String> scopes,
+    required bool isPermanent,
+  }) {
     var scope = scopes.join(',');
 
-    return '${API.website_link}/oauth/authorize?client_id=$client_id&redirect_uri=$redirect_uri&state=${state ?? 'ruqqus'}&scope=$scope&permanent=$is_permanent';
+    return '${API.host}/oauth/authorize'
+        '?client_id=$clientId'
+        '&redirect_uri=$redirectUri'
+        '&state=$state'
+        '&scope=$scope'
+        '&permanent=$isPermanent';
   }
 }
