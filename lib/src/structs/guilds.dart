@@ -1,99 +1,145 @@
-// structs/guilds.dart - Comprises structs for data about guilds
+import 'dart:convert';
 
-import 'package:dio/dio.dart';
-import 'package:ruqqus_dart/ruqqus_dart.dart';
+import 'package:enum_to_string/enum_to_string.dart';
 
-import 'primary.dart';
+import 'package:ruqqus_dart/src/API.dart';
+import 'package:ruqqus_dart/src/structs/primary.dart';
+import 'package:ruqqus_dart/src/structs/submissions.dart';
+import 'package:ruqqus_dart/src/structs/users.dart';
 
 class Guild extends Primary {
   final API api;
 
-  String name;
-  Body description;
-  String color;
-  int subscriber_count;
-  int guildmaster_count;
-  String profile_url;
-  String banner_url;
-  GuildFlags flags;
+  String? name;
+  Body? description;
+  String? color;
+  int? subscriberCount;
+  List<User>? guildmasters;
+  String? iconUrl;
+  String? bannerUrl;
+  GuildFlags? flags;
 
-  Guild(this.api, this.name);
+  Guild(this.api);
 
-  void obtainData([Map<String, dynamic> suppliedData]) async {
-    Response response;
+  factory Guild.from(API api, Map<String, dynamic> data) {
+    final guild = Guild(api);
 
-    // If we already have the data for which a get request would have been otherwise needed, use that
-    if (suppliedData != null) {
-      response = Response(data: suppliedData);
-    } else {
-      response = await api.GetRequest('guild/$name');
-    }
+    // Primary data
+    guild.id = data['id'];
+    guild.fullId = data['fullname'];
+    guild.link = data['permalink'];
+    guild.fullLink = '${API.host}${guild.link}';
+    guild.createdAt = data['created_utc'];
 
-    name = response.data['name'];
-    id = response.data['id'];
-    full_id = response.data['fullname'];
-    link = response.data['permalink'];
-    full_link = '${API.website_link}$link';
+    // Guild-specific data
+    guild.name = data['name'];
+    guild.description = Body(
+      data['description'],
+      data['description_html'],
+    );
+    guild.color = data['color'];
+    guild.subscriberCount = data['subscriber_count'];
+    guild.guildmasters = data['guildmasters'].map(
+      (guildmasterRaw) => User(api)..fetchData(guildmasterRaw),
+    );
+    guild.iconUrl = data['profile_url'].startsWith('/assets')
+        ? '$API.website_link${data['profile_url']}'
+        : data['profile_url'];
+    guild.bannerUrl = data['banner_url'].startsWith('/assets')
+        ? '$API.website_link${data['banner_url']}'
+        : data['banner_url'];
+    guild.flags = GuildFlags(
+      data['is_banned'],
+      data['is_private'],
+      data['is_restricted'],
+      data['is_siege_protected'],
+      data['over_18'],
+    );
 
-    description =
-        Body(response.data['description'], response.data['description_html']);
-    color = response.data['color'];
-
-    created_at = response.data['created_utc'];
-    subscriber_count = response.data['subscriber_count'];
-    guildmaster_count = response.data['mods_count'];
-    profile_url = response.data['profile_url'].startsWith('/assets')
-        ? '$API.website_link${response.data['profile_url']}'
-        : response.data['profile_url'];
-    banner_url = response.data['banner_url'].startsWith('/assets')
-        ? '$API.website_link${response.data['banner_url']}'
-        : response.data['banner_url'];
-    flags = GuildFlags(response.data['is_banned'], response.data['is_private'],
-        response.data['is_restricted'], response.data['over_18']);
+    return guild;
   }
 
-  /// Gets and returns a list of 'Post' structs that belong to this guild
-  Future<List<Post>> obtainPosts(
-      SortType sort_type, int page, int quantity) async {
-    var result = <Post>[];
+  Future fetchData(String name) async {
+    final response = await api.get('/guild/$name');
 
-    // Get all posts on a page
-    var response = await api.GetRequest('guild/$name/listing', headers: {
-      'sort': sort_type.toString().split('.')[1].toLowerCase(),
-      'page': page
+    if (response == null) {
+      api.log.error('Failed to fetch data of guild $name');
+      return;
+    }
+
+    final Map<String, dynamic> data = jsonDecode(response.body);
+
+    // Primary data
+    id = data['id'];
+    fullId = data['fullname'];
+    link = data['permalink'];
+    fullLink = '${API.host}$link';
+    createdAt = data['created_utc'];
+
+    // Guild-specific data
+    name = data['name'];
+    description = Body(
+      data['description'],
+      data['description_html'],
+    );
+    color = data['color'];
+    subscriberCount = data['subscriber_count'];
+    guildmasters = data['guildmasters'].map(
+      (guildmasterRaw) => User(api)..fetchData(guildmasterRaw.username),
+    );
+    iconUrl = data['profile_url'].startsWith('/assets')
+        ? '$API.website_link${data['profile_url']}'
+        : data['profile_url'];
+    bannerUrl = data['banner_url'].startsWith('/assets')
+        ? '$API.website_link${data['banner_url']}'
+        : data['banner_url'];
+    flags = GuildFlags(
+      data['is_banned'],
+      data['is_private'],
+      data['is_restricted'],
+      data['is_siege_protected'],
+      data['over_18'],
+    );
+  }
+
+  /// Gets and returns a list of `Posts` in this guild
+  Future<List<Post>> fetchPosts({
+    SortType sortType = SortType.Hot,
+    required int page,
+    required int quantity,
+  }) async {
+    // Get posts from listing, determining how the posts should be sorted
+    // and which page the listing is to be extracted from
+    final response = await api.get('guild/$name/listing', headers: {
+      'sort': EnumToString.convertToString(sortType).toLowerCase(),
+      'page': page,
     });
 
-    // Converts _InternalLinkedHashMap<String, dynamic> to a List<dynamic> with all the posts
-    List<dynamic> posts = Map<String, dynamic>.from(response.data)['data'];
-
-    // Iterates through list of
-    for (Map<String, dynamic> entry in posts) {
-      var post = Post(api);
-      post.obtainData(null, entry);
-      result.add(post);
+    if (response == null) {
+      return [];
     }
 
-    return result;
+    final body = jsonDecode(response.body);
+
+    // Converts _InternalLinkedHashMap<String, dynamic> to a List<dynamic> with all the posts
+    List<dynamic> rawPosts = Map<String, dynamic>.from(body)['data'];
+
+    return rawPosts.map((rawPost) => Post(api)..fetchData(rawPost)).toList();
   }
-
-  @override
-  String toString() {
-    return 'Name: $name, id: $id, full_id: $full_id, link: $link, full_link: $full_link, is_banned: ${flags.is_banned}, is_private: ${flags.is_private}, is_restricted: ${flags.is_restricted}, is_over_18: ${flags.over_18}, color: ${color}, subscriber_count: ${subscriber_count}, guildmaster_count: ${guildmaster_count}${description.text.isNotEmpty ? ', description: ${description.text}' : ''}';
-  }
-}
-
-class GuildName {
-  final String guild_name;
-  final String original_guild_name;
-
-  GuildName(this.guild_name, this.original_guild_name);
 }
 
 class GuildFlags {
-  final bool is_banned;
-  final bool is_private;
-  final bool is_restricted;
-  final bool over_18;
+  final bool isBanned;
+  final bool isPrivate;
+  final bool isRestricted;
+  final bool isSiegeProtected;
+  final bool over18;
 
-  GuildFlags(this.is_banned, this.is_private, this.is_restricted, this.over_18);
+  GuildFlags(
+    this.isBanned,
+    this.isPrivate,
+    this.isRestricted,
+    this.isSiegeProtected,
+    this.over18,
+  );
 }
