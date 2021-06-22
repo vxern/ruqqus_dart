@@ -1,163 +1,185 @@
-// structs/user.dart - File for storing classes used for user data
+import 'dart:convert';
 
-import 'package:dio/dio.dart';
+import 'package:enum_to_string/enum_to_string.dart';
 
-import '../API.dart';
-import '../logger.dart';
-import 'submissions.dart';
-import 'primary.dart';
+import 'package:ruqqus_dart/src/API.dart';
+import 'package:ruqqus_dart/src/structs/primary.dart';
+import 'package:ruqqus_dart/src/structs/submissions.dart';
 
-// USERS
-
-/// The user class. Comprises info about users
+/// The `User` data structure, comprising information about a user account
 class User extends Primary {
   final API api;
 
-  final String username;
-  Title title;
-  Body bio;
-  UserStats stats;
+  String? username;
+  Title? title;
+  Body? bio;
+  UserStats? stats;
+  String? avatarUrl;
+  String? bannerUrl;
+  UserFlags? flags;
+  List<Badge>? badges;
 
-  String profile_url;
-  String banner_url;
+  User(this.api);
 
-  UserFlags flags;
-  List<Badge> badges;
+  factory User.from(API api, Map<String, dynamic> data) {
+    final user = User(api);
 
-  String ban_reason = "User isn't banned";
+    // Primary data
+    user.id = data['id'];
+    user.fullId = data['fullname'];
+    user.link = data['permalink'];
+    user.fullLink = '${API.host}${user.link}';
+    user.createdAt = data['created_utc'];
 
-  User(this.api, this.username);
-
-  void obtainData([Map<String, dynamic> suppliedData]) async {
-    Response response;
-
-    // If we already have the data for which a get request would have been otherwise needed, use that
-    if (suppliedData != null) {
-      response = Response(data: suppliedData);
-    } else {
-      response = await api.GetRequest('user/$username');
+    // User-specific data
+    user.username = data['username'];
+    if (data['is_deleted'] == '1') {
+      user.flags =
+          UserFlags(false, false, true, false, 'This user has been deleted');
+      return user;
     }
-
-    if (response.data['id'] == null) {
-      throwError('Could not obtain id of user $username!');
-      return;
+    if (data['is_banned'] == '1') {
+      user.flags = UserFlags(true, false, false, false, data['ban_reason']);
+      return user;
     }
-
-    id = response.data['id'];
-    full_id = 't1_$id';
-    link = response.data['permalink'];
-    full_link = '$API.website_link$link';
-    flags = UserFlags(false, false);
-
-    if (response.data['is_banned'] == '1') {
-      flags.is_banned = true;
-      ban_reason = response.data['ban_reason'];
-      throwWarning('User $username is banned.');
-      if (response.data['is_deleted'] != '1') return;
+    if (data.containsKey('title')) {
+      user.title = Title.from(data['title']);
     }
+    user.bio = Body(data['bio'], data['bio_html']);
+    user.stats = UserStats(
+      data['post_count'],
+      data['post_rep'],
+      data['comment_count'],
+      data['comment_rep'],
+    );
+    user.avatarUrl = data['profile_url'].startsWith('/assets')
+        ? '$API.website_link${data['profile_url']}'
+        : data['profile_url'];
+    user.bannerUrl = data['banner_url'].startsWith('/assets')
+        ? '$API.website_link${data['banner_url']}'
+        : data['banner_url'];
+    user.badges = data['badges'].map(
+      (badgeRaw) => Badge(
+        badgeRaw['name'],
+        badgeRaw['text'],
+        badgeRaw['url'],
+        badgeRaw['icon_url'],
+        badgeRaw['created_utc'],
+      ),
+    );
+    user.flags = UserFlags(
+      false, // Banned user has already been handled before
+      data['is_private'] == '1',
+      false, // Deleted user has already been handled before
+      data['is_premium'] == '1',
+      'User is not banned',
+    );
 
-    if (response.data['is_deleted'] == '1') {
-      flags.is_deleted = true;
-      throwWarning("User $username's account is deleted.");
-      return;
-    }
-
-    if (response.data['title'] != null) {
-      title = Title(
-          response.data['title']['text'].startsWith(',')
-              ? response.data['title']['text'].split(', ')[1]
-              : response.data['title']['text'],
-          response.data['title']['id'].toString(),
-          response.data['title']['kind'].toString(),
-          response.data['title']['color'].toString());
-    }
-
-    bio = Body(response.data['bio'], response.data['bio_html']);
-
-    stats = UserStats(
-        int.parse(response.data['post_count'].toString()),
-        int.parse(response.data['post_rep'].toString()),
-        int.parse(response.data['comment_count'].toString()),
-        int.parse(response.data['comment_rep'].toString()));
-
-    profile_url = response.data['profile_url'].startsWith('/assets')
-        ? '$API.website_link${response.data['profile_url']}'
-        : response.data['profile_url'];
-    banner_url = response.data['banner_url'].startsWith('/assets')
-        ? '$API.website_link${response.data['banner_url']}'
-        : response.data['banner_url'];
-
-    badges = <Badge>[];
-    for (dynamic entry in response.data['badges']) {
-      badges.add(Badge(
-          entry['name'], entry['text'], entry['url'], entry['created_utc']));
-    }
+    return user;
   }
 
-  /// Gets and returns a list of 'Post' structs.
-  Future<List<Post>> obtainPosts(
-      {SortType sort_type = SortType.Hot, int page = 1}) async {
-    var result = <Post>[];
+  Future fetchData(String username) async {
+    final response = await api.get('/user/$username');
 
-    // Get all posts on a page
-    var response = await api.GetRequest('user/$username/listing', headers: {
-      'sort': sort_type.toString().split('.')[1].toLowerCase(),
-      'page': page
+    if (response == null) {
+      api.log.error('Failed to fetch data of user $username');
+      return;
+    }
+
+    final Map<String, dynamic> data = jsonDecode(response.body);
+  }
+
+  /// Gets and returns a list of `Posts` from this `User's` profile
+  Future<List<Post>> fetchPosts({
+    SortType sortType = SortType.Hot,
+    required int page,
+    required int quantity,
+  }) async {
+    // Get posts from listing, determining how the posts should be sorted
+    // and which page the listing is to be extracted from
+    final response = await api.get('user/$username/listing', headers: {
+      'sort': EnumToString.convertToString(sortType).toLowerCase(),
+      'page': page,
     });
 
-    // Converts _InternalLinkedHashMap<String, dynamic> to a List<dynamic> with all the posts
-    List<dynamic> posts = Map<String, dynamic>.from(response.data)['data'];
-
-    // Iterates through list of
-    for (Map<String, dynamic> entry in posts) {
-      var post = Post(api);
-      post.obtainData(null, entry);
-      result.add(post);
+    if (response == null) {
+      return [];
     }
 
-    return result;
-  }
+    final body = jsonDecode(response.body);
 
-  @override
-  String toString() {
-    return 'Username: $username, id: $id, full_id: $full_id, full_link: $full_link, is_banned: ${flags.is_banned}, is_deleted: ${flags.is_deleted}${title != null ? ', title: ${title.name}' : ''}${bio.text.isNotEmpty ? ', bio: ${bio.text}' : ''}, posts: ${stats.post_count}, post_reputation: ${stats.post_reputation}, comments: ${stats.comment_count}, comment_reputation: ${stats.comment_reputation}, profile_url: $profile_url, banner_url: $banner_url, badges: ${badges.toString()}';
+    // Converts _InternalLinkedHashMap<String, dynamic> to a List<dynamic>
+    List<dynamic> rawPosts = Map<String, dynamic>.from(body)['data'];
+
+    return rawPosts.map((rawPost) => Post(api)..fetchData(rawPost)).toList();
   }
 }
 
-/// The user's title, for example ', the Hot' or ', the Dumpster Arsonist'
+/// The `User's` title, for example `User123 the Hot` or `User123 the Dumpster Arsonist`
 class Title {
   final String name;
-  final String id;
-  final String kind;
+  final int id;
+  final int kind;
   final String color;
 
-  Title(this.name, this.id, this.kind, this.color);
+  factory Title.from(Map<String, dynamic> data) {
+    return Title(
+      data['text'].replace(', ', ''),
+      data['id'],
+      data['kind'],
+      data['color'],
+    );
+  }
+
+  const Title(this.name, this.id, this.kind, this.color);
 }
 
-/// The user's stats: how many posts/comments they've made and their reputation
+/// The `User's` stats - how many submissions of each type they have committed and their reputation
 class UserStats {
-  final int post_count;
-  final int post_reputation;
-  final int comment_count;
-  final int comment_reputation;
+  final int postCount;
+  final int postReputation;
+  final int commentCount;
+  final int commentReputation;
 
-  UserStats(this.post_count, this.post_reputation, this.comment_count,
-      this.comment_reputation);
+  const UserStats(
+    this.postCount,
+    this.postReputation,
+    this.commentCount,
+    this.commentReputation,
+  );
 }
 
-/// The user's flags - used for requesting data
+/// The `User's` flags - used for requesting data
 class UserFlags {
-  bool is_banned;
-  bool is_deleted;
+  final bool isBanned;
+  final bool isPrivate;
+  final bool isDeleted;
+  final bool isPremium;
+  final String banReason;
 
-  UserFlags(this.is_banned, this.is_deleted);
+  const UserFlags(
+    this.isBanned,
+    this.isPrivate,
+    this.isDeleted,
+    this.isPremium,
+    this.banReason,
+  );
 }
 
+/// The `User's` badge/s, awarded for certain tasks, such as signing up
+/// during alpha or contributing to the Ruqqus source code
 class Badge {
   final String name;
   final String description;
   final String url;
-  final int created_at;
+  final String iconUrl;
+  final int createdAt;
 
-  Badge(this.name, this.description, this.url, this.created_at);
+  const Badge(
+    this.name,
+    this.description,
+    this.url,
+    this.iconUrl,
+    this.createdAt,
+  );
 }
