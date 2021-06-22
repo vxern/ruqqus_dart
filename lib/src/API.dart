@@ -1,305 +1,396 @@
-// API.dart - Main file for interacting with the API
+import 'dart:io';
+import 'dart:convert';
 
-import 'package:dio/dio.dart';
+import 'package:http/http.dart' as http;
+import 'package:sprint/sprint.dart';
+
+import 'package:ruqqus_dart/src/client.dart';
+import 'package:ruqqus_dart/src/utils.dart';
+import 'package:ruqqus_dart/src/structs/primary.dart';
+import 'package:ruqqus_dart/src/structs/settings.dart';
 import 'package:ruqqus_dart/src/structs/submissions.dart';
 
-import 'client.dart';
-import 'logger.dart';
-import 'structs/primary.dart';
-import 'structs/settings.dart';
-
-/// Provides a nicer interface for calling the API
+/// Wraps Ruqqus API routes and acts as an interface for interacting with them
 class API {
+  static const String host = 'https://ruqqus.com';
+  static const String apiVersion = '/api/v1';
+  static const String grantUrl = '$host/oauth/grant';
+
+  final Sprint log = Sprint('API Caller');
+
   final Client client;
 
-  // HTTP Requests
-  final Dio dio = Dio();
-  Map<String, dynamic> requestData;
+  final HttpClient httpClient = HttpClient();
 
-  // Useful links and components of the URI
-  static const String website_link = 'https://ruqqus.com';
-  static const String api_version = 'api/v1';
-  static const String grant_url = '$website_link/oauth/grant';
+  late final Map<String, String> refreshData;
 
-  // Controls
-  final String user_agent;
-  String access_token;
+  final String userAgent;
 
-  API(this.client, this.requestData, this.user_agent);
+  API(this.client, this.refreshData, this.userAgent, {bool quietMode = false}) {
+    log.quietMode = quietMode;
+  }
 
-  Future<Response> GetRequest(String path,
-      {Map<String, dynamic> headers}) async {
-    if (path.isEmpty) {
-      throwWarning('<PostRequest> Your path is empty.');
+  /// Submits a HTTP `GET` request with the given headers
+  Future<http.Response?> get(
+    String route, {
+    Map<String, dynamic> headers = const {},
+  }) async {
+    final uri = routeToUri(route);
+
+    if (uri == null) {
+      log.warning('Attempted to access an invalid route: ${route}');
       return null;
     }
 
-    try {
-      return await dio.get(
-          // Checks whether the path is an API path, or a URI of its own
-          path.contains('$website_link')
-              ? path
-              : '$website_link/$api_version/$path',
-          options: Options(
-              // If no headers have been provided, the access token is used instead
-              headers: {}
-                ..addAll(headers ?? {})
-                ..addAll({
-                  'Authorization': 'Bearer ${access_token}',
-                  'X-User-Type': 'Bot',
-                  'X-Library': 'ruqqus.dart',
-                  'X-Supports': 'auth'
-                })));
-    } on DioError catch (e) {
-      // If not successful, print the error.
-      if (!(e.response.statusCode >= 200 && e.response.statusCode <= 299)) {
-        throwError('${e.response.statusCode} - ${e.response.statusMessage}');
-        return null;
-      }
-    }
+    final crucialHeaders = <String, dynamic>{
+      'Authorization': 'Bearer ${client.accessToken}',
+      'User-Agent': userAgent,
+      'X-User-Type': 'Bot',
+      'X-Library': 'ruqqus.dart',
+      'X-Supports': 'auth',
+    };
 
-    return null;
+    try {
+      return await http.get(
+        uri,
+        headers: Map<String, String>.from(crucialHeaders..addAll(headers)),
+      );
+    } on HttpException catch (exception) {
+      log.warning(exception.message);
+    }
   }
 
-  Future<Response> PostRequest(String path,
-      {Map<String, dynamic> data, Map<String, dynamic> headers}) async {
-    if (path.isEmpty) {
-      throwWarning('<PostRequest> Your path is empty.');
+  /// Submits a HTTP `POST` request with the given headers and body
+  Future<http.Response?> post(
+    String route, {
+    Map<String, dynamic> headers = const {},
+    Map<String, dynamic> body = const {},
+  }) async {
+    final uri = routeToUri(route);
+
+    if (uri == null) {
+      log.warning('Attempted to access an invalid route: ${route}');
       return null;
     }
 
+    final crucialHeaders = <String, dynamic>{
+      'Authorization': 'Bearer ${client.accessToken}',
+      'User-Agent': userAgent,
+      'X-User-Type': 'Bot',
+      'X-Library': 'ruqqus.dart',
+      'X-Supports': 'auth',
+    };
+
     try {
-      return await dio.post(
-          // Checks whether the path is an API path, or a URI of its own
-          path.contains('$website_link')
-              ? path
-              : '$website_link/$api_version/$path',
-          // Converts the map into 'formdata' - the data type used by dio
-          data: FormData.fromMap(data ?? {}),
-          options: Options(
-              // If no headers have been provided, the access token is used instead
-              headers: headers ??
-                  {
-                    'Authorization': 'Bearer ${access_token}',
-                    'X-User-Type': 'Bot',
-                    'X-Library': 'ruqqus.dart',
-                    'X-Supports': 'auth'
-                  }));
-    } on DioError catch (e) {
-      // If not successful, print the error.
-      if (!(e.response.statusCode >= 200 && e.response.statusCode <= 299)) {
-        throwError('${e.response.statusCode} - ${e.response.statusMessage}');
-        return null;
-      }
+      return await http.post(
+        uri,
+        body: body,
+        headers: Map<String, String>.from(crucialHeaders..addAll(headers)),
+      );
+    } on HttpException catch (exception) {
+      log.error(exception.message);
+      return null;
     }
-
-    return null;
   }
 
-  /// Ruqqus: "Access tokens expire one hour after they are issued.
-  /// To maintain ongoing access, you will need to use the refresh token to obtain a new access token."
-  void obtainToken() async {
-    var response = await PostRequest(API.grant_url,
-        data: requestData, headers: {'User-Agent': user_agent});
+  /// Submits a `Post` to a `Guild` with the specified title and body, and an optional url
+  Future<Post?> submitPost({
+    required String targetGuild,
+    required String title,
+    required String body,
+    String? url,
+  }) async {
+    final response = await this.post(
+      '/submit',
+      body: {
+        'board': targetGuild,
+        'title': title,
+        'body': body,
+        if (url != null) 'url': url,
+      },
+    );
 
-    // Build next ruqquest
-    access_token = response.data['access_token'];
-
-    // Set up client and start refreshing
-    if (!client.is_ready) {
-      client.is_ready = true;
-      client.emit('ready');
+    if (response == null) {
+      log.error('Failed to submit post in guild $targetGuild');
+      return null;
     }
 
-    success('<obtainToken> Token obtained!');
-
-    Future.delayed(Duration(minutes: 59, seconds: 55), () {
-      obtainToken();
-    });
-  }
-
-  // POST
-
-  /// Submits a post to a guild with the specified title and body
-  Future<Post> post(
-      {String target_board = '+general', String title, String body}) async {
-    if (title.isEmpty || body.isEmpty) {
-      throwWarning('<post> Title or body is missing.');
+    if (response.body.contains('<title>Redirecting...</title>')) {
+      log.error('An identical post already exists:'
+          '\nTitle: ${wrapString(title)}'
+          '\nBody: ${wrapString(body, 50)}');
+      return null;
     }
 
-    var response = await PostRequest('submit',
-        data: {'board': target_board, 'title': title, 'body': body});
+    log.success('Post submitted');
 
-    var post = Post(this);
-    post.obtainData(null, response.data);
+    final Map<String, dynamic> responseBody = jsonDecode(response.body);
 
-    if (response.data['guild_name'] == 'general' &&
-        (target_board != 'general' && target_board != '+general')) {
-      throwWarning(
-          '<post> As the guild name you provided is not valid, the post has been submitted to +general.');
-      return post;
-    }
-
-    success('<post> Post submitted.');
-    return post;
+    return Post.from(this, responseBody);
   }
 
   /// Submits a reply under a parent with the specified body
-  Future<Comment> reply(
-      {SubmissionType type_of_target, String id, String body}) async {
-    var response = await PostRequest('comment', data: {
-      'parent_fullname':
-          '${type_of_target == SubmissionType.Post ? 't2' : 't3'}_$id',
-      'body': body
-    });
+  Future<Comment?> submitReply({
+    required SubmissionType parentSubmissionType,
+    required String id,
+    required String body,
+  }) async {
+    final response = await post(
+      '/comment',
+      body: {
+        'parent_fullname':
+            parentSubmissionType == SubmissionType.Post ? 't2_$id' : 't3_$id',
+        'body': body,
+      },
+    );
 
-    var comment = Comment(this);
-    await comment.obtainData(null, response.data);
-
-    success('<reply> Reply submitted.');
-    return comment;
-  }
-
-  /// Edit post/comment and supplant body with the provided body
-  Future<dynamic> edit(
-      {SubmissionType type_of_target, String id, String body}) async {
-    var response = await PostRequest(
-        '${API.website_link}/${type_of_target == SubmissionType.Post ? 'edit_post' : 'edit_comment'}/$id',
-        data: {'body': body});
-
-    Post post;
-    Comment comment;
-
-    if (type_of_target == SubmissionType.Post) {
-      post = Post(this);
-      post.obtainData(null, response.data);
-    } else {
-      comment = Comment(this);
-      comment.obtainData(null, response.data);
+    if (response == null) {
+      log.error('Failed to submit reply');
+      return null;
     }
 
-    success(
-        '<edit> Edited ${type_of_target == SubmissionType.Post ? 'post' : 'comment'}.');
-    return post ?? comment;
+    final Map<String, dynamic> responseBody = jsonDecode(response.body);
+
+    if (responseBody.containsKey('error')) {
+      log.error(responseBody['error']);
+      return null;
+    }
+
+    log.success('Reply submitted');
+
+    return Comment.from(this, responseBody);
   }
 
-  /// Delete post/comment
-  void delete({SubmissionType type_of_target, String id}) async {
-    await PostRequest(type_of_target == SubmissionType.Post
-        ? 'delete_post/$id'
-        : 'delete/comment/$id');
+  /// Edit submission by replacing previous content body with a new content body
+  Future<Primary?> edit<Submission extends Primary>({
+    required SubmissionType parentSubmissionType,
+    required String id,
+    required String body,
+  }) async {
+    final response = await this.post(
+      parentSubmissionType == SubmissionType.Post
+          ? '/edit_post/$id'
+          : '/edit_comment/$id',
+      body: {
+        'body': body,
+      },
+    );
 
-    success(
-        'delete > Deleted ${type_of_target == SubmissionType.Post ? 'post' : 'comment'}.');
+    if (response == null) {
+      log.error('Failed to edit submission');
+      return null;
+    }
+
+    log.success('Submission edited');
+
+    return parentSubmissionType == SubmissionType.Post
+        ? (Post(this)..fetchData(id))
+        : (Comment(this)..fetchData(id));
   }
 
-  /// Update profile settings
-  Future<Response> update_profile_settings(
-      {ProfileSettings profile_settings}) async {
-    var response = await PostRequest('$website_link/settings/profile', data: {
-      'over18': profile_settings.over_18,
-      'hide_offensive': profile_settings.hide_offensive,
-      'show_nsfl': profile_settings.show_nsfl,
-      'filter_nsfw': profile_settings.filter_nsfw,
-      'private': profile_settings.private,
-      'nofollow': profile_settings.nofollow,
-      'bio': profile_settings.bio,
-      'title_id': profile_settings.title_id
-    });
+  /// Delete submission
+  Future delete({
+    required SubmissionType submissionType,
+    required String id,
+  }) async {
+    final response = await post(
+      submissionType == SubmissionType.Post
+          ? '/delete_post/$id'
+          : '/delete/comment/$id',
+    );
 
-    success('<update_profile_settings> Updated settings.');
-    return response;
+    if (response == null) {
+      log.error('Failed to delete submission');
+      return;
+    }
+
+    if (response.body.isEmpty) {
+      log.success('Deleted submission');
+      return;
+    }
+
+    final Map<String, dynamic> responseBody = jsonDecode(response.body);
+
+    if (responseBody.containsKey('error')) {
+      log.error(responseBody['error']);
+      return;
+    }
   }
 
-  /// Update password
-  Future<Response> update_password({UpdatePassword update_password}) async {
-    var response =
-        await PostRequest('$website_link/settings/security', headers: {
-      'new_password': update_password.new_password,
-      'cnf_password': update_password.new_password,
-      'old_password': update_password.old_password
-    });
+  /// Updates the account's profile settings
+  ///
+  /// Returns `true` if the profile settings had been updated,
+  /// and `false` otherwise
+  Future<bool> updateProfileSettings({
+    required ProfileSettings profileSettings,
+  }) async {
+    final response = await post(
+      '/settings/profile',
+      body: {
+        'over18': profileSettings.over18,
+        'hide_offensive': profileSettings.hideOffensive,
+        'show_nsfl': profileSettings.showNsfl,
+        'filter_nsfw': profileSettings.filterNsfw,
+        'private': profileSettings.private,
+        'nofollow': profileSettings.nofollow,
+        'bio': profileSettings.bio,
+        'title_id': profileSettings.titleId,
+      },
+    );
 
-    success('<update_password> Updated password!');
-    return response;
+    if (response == null) {
+      log.error('Failed to update profile settings');
+      return false;
+    }
+
+    log.success('Settings updated');
+
+    return true;
   }
 
-  /// Update email
-  Future<Response> update_email({UpdateEmail update_email}) async {
-    var response = await PostRequest('$website_link/settings/security',
-        headers: {
-          'new_email': update_email.new_email,
-          'password': update_email.password
-        });
+  /// Updates the account's password
+  ///
+  /// Returns `true` if the password had been updated, and `false` otherwise
+  Future<bool> updatePassword({
+    required UpdatePassword updatePassword,
+  }) async {
+    final response = await post(
+      '/settings/security',
+      headers: {
+        'new_password': updatePassword.newPassword,
+        'cnf_password': updatePassword.newPassword,
+        'old_password': updatePassword.oldPassword
+      },
+    );
 
-    success('<update_email> Updated email!');
-    return response;
+    if (response == null) {
+      log.error('Failed to update password');
+      return false;
+    }
+
+    log.success('Password updated');
+
+    return true;
   }
 
-  /// Enable 2FA
-  Future<Response> enable_2fa({Enable2FA enable_2fa}) async {
-    var response =
-        await PostRequest('$website_link/settings/security', headers: {
-      '2fa_token': enable_2fa.two_factor_token,
-      '2fa_secret': enable_2fa.two_factor_secret,
-      'password': enable_2fa.password,
-    });
+  /// Updates the account's email
+  ///
+  /// Returns `true` if the email had been updated, and `false` otherwise
+  Future<bool> updateEmail({
+    required UpdateEmail updateEmail,
+  }) async {
+    final response = await post(
+      '/settings/security',
+      headers: {
+        'new_email': updateEmail.newEmail,
+        'password': updateEmail.password
+      },
+    );
 
-    success('<enable_2fa> Enabled 2-factor authorization successfully!');
-    return response;
+    if (response == null) {
+      log.error('Failed to update email address');
+      return false;
+    }
+
+    log.success('Email address updated');
+
+    return true;
   }
 
-  /// Disable 2FA
-  Future<Response> disable_2fa({Disable2FA disable_2fa}) async {
-    var response =
-        await PostRequest('$website_link/settings/security', headers: {
-      '2fa_remove': disable_2fa.two_factor_token,
-      'password': disable_2fa.password,
-    });
+  /// Enables 2FA on the account
+  ///
+  /// Returns `true` if 2FA had been enabled, and `false` otherwise
+  Future<bool> enable2fa({
+    required Enable2FA enable2fa,
+  }) async {
+    final response = await post(
+      '/settings/security',
+      headers: {
+        '2fa_token': enable2fa.twoFactorToken,
+        '2fa_secret': enable2fa.twoFactorSecret,
+        'password': enable2fa.password,
+      },
+    );
 
-    success('<disable_2fa> Disabled 2-factor authorization successfully!');
-    return response;
+    if (response == null) {
+      log.error('Failed to enable Two Factor Authorisation');
+      return false;
+    }
+
+    log.success('Two Factor Authorisation enabled');
+
+    return true;
   }
 
-  /// Logs all other devices out
-  Future<Response> logout_all({String password}) async {
-    var response = await PostRequest(
-        '$website_link/settings/log_out_all_others',
-        headers: {
-          'password': password,
-        });
+  /// Disables 2FA on the account
+  ///
+  /// Returns `true` if 2FA had been disabled, and `false` otherwise
+  Future<bool> disable2fa({
+    required Disable2FA disable2fa,
+  }) async {
+    final response = await post(
+      '/settings/security',
+      headers: {
+        '2fa_remove': disable2fa.twoFactorToken,
+        'password': disable2fa.password,
+      },
+    );
 
-    success('<logout_all> All other devices have been logged out');
-    return response;
+    if (response == null) {
+      log.error('Failed to disable Two Factor Authorisation');
+      return false;
+    }
+
+    log.success('Two Factor Authorisation disabled');
+
+    return true;
   }
 
-  /// Deletes account. This cannot be undone!
-  Future<Response> delete_account(AccountDeletion accountDeletion,
-      {AccountDeletion account_deletion}) async {
-    var response =
-        await PostRequest('$website_link/settings/delete_account', headers: {
-      'password': account_deletion.password,
-      'delete_reason': account_deletion.delete_reason,
-      'twofactor': account_deletion.two_factor_token,
-    });
+  /// Logs all other instances out
+  ///
+  /// Returns `true` if the instances have been logged out, and `false` otherwise
+  Future<bool> logoutAll({
+    required String password,
+  }) async {
+    final response = await post(
+      '/settings/log_out_all_others',
+      headers: {
+        'password': password,
+      },
+    );
 
-    success('<delete_account> Your account has been deleted. Well done.');
-    return response;
+    if (response == null) {
+      log.error('Failed to disable log out from all other instances');
+      return false;
+    }
+
+    log.success('All other instances have been logged out');
+
+    return true;
   }
 
-  /// Subscribes to a user
-  Future<Response> follow({String username}) async {
-    var response = await PostRequest('$website_link/api/follow/$username');
+  /// Deletes the account accessing the API. There is no going back!
+  ///
+  /// Returns `true` if the account has been deleted, and `false` otherwise
+  Future<bool> deleteAccount({
+    required AccountDeletion accountDeletion,
+  }) async {
+    final response = await post(
+      '/settings/delete_account',
+      headers: {
+        'password': accountDeletion.password,
+        'delete_reason': accountDeletion.deleteReason,
+        'twofactor': accountDeletion.twoFactorToken,
+      },
+    );
 
-    success('<follow> Followed user $username.');
-    return response;
-  }
+    if (response == null) {
+      log.error('Failed to delete account');
+      return false;
+    }
 
-  /// Unsubscribes from a user
-  Future<Response> unfollow({String username}) async {
-    var response = await PostRequest('$website_link/api/unfollow/$username');
+    log.success('Account deleted');
 
-    success('<unfollow> Unfollowed user $username.');
-    return response;
+    return true;
   }
 }
