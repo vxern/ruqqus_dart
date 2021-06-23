@@ -13,10 +13,10 @@ class Guild extends Primary {
   String? name;
   Body? description;
   String? color;
-  int? subscriberCount;
-  List<User>? guildmasters;
   String? iconUrl;
   String? bannerUrl;
+  int? subscriberCount; // TODO: Possibly inexistent field
+  List<User>? guildmasters; // TODO: Possibly inexistent field
   GuildFlags? flags;
 
   Guild(this.api);
@@ -27,8 +27,8 @@ class Guild extends Primary {
     // Primary data
     guild.id = data['id'];
     guild.fullId = data['fullname'];
-    guild.link = data['permalink'];
-    guild.fullLink = '${API.host}${guild.link}';
+    guild.permalink = data['permalink'];
+    guild.fullLink = '${API.host}${guild.permalink}';
     guild.createdAt = data['created_utc'];
 
     // Guild-specific data
@@ -39,7 +39,8 @@ class Guild extends Primary {
     );
     guild.color = data['color'];
     guild.subscriberCount = data['subscriber_count'];
-    guild.guildmasters = data['guildmasters'].map(
+    // TODO: Remove null check when the API gets updated
+    guild.guildmasters = data['guildmasters']?.map(
       (guildmasterRaw) => User(api)..fetchData(guildmasterRaw),
     );
     guild.iconUrl = data['profile_url'].startsWith('/assets')
@@ -54,6 +55,7 @@ class Guild extends Primary {
       data['is_restricted'],
       data['is_siege_protected'],
       data['over_18'],
+      data['disallowbots'],
     );
 
     return guild;
@@ -72,8 +74,8 @@ class Guild extends Primary {
     // Primary data
     id = data['id'];
     fullId = data['fullname'];
-    link = data['permalink'];
-    fullLink = '${API.host}$link';
+    permalink = data['permalink'];
+    fullLink = '${API.host}$permalink';
     createdAt = data['created_utc'];
 
     // Guild-specific data
@@ -84,7 +86,7 @@ class Guild extends Primary {
     );
     color = data['color'];
     subscriberCount = data['subscriber_count'];
-    guildmasters = data['guildmasters'].map(
+    guildmasters = data['guildmasters']?.map(
       (guildmasterRaw) => User(api)..fetchData(guildmasterRaw.username),
     );
     iconUrl = data['profile_url'].startsWith('/assets')
@@ -99,6 +101,7 @@ class Guild extends Primary {
       data['is_restricted'],
       data['is_siege_protected'],
       data['over_18'],
+      data['disallowbots'],
     );
   }
 
@@ -134,6 +137,7 @@ class GuildFlags {
   final bool isRestricted;
   final bool isSiegeProtected;
   final bool over18;
+  final bool disallowsBots;
 
   GuildFlags(
     this.isBanned,
@@ -141,5 +145,6 @@ class GuildFlags {
     this.isRestricted,
     this.isSiegeProtected,
     this.over18,
+    this.disallowsBots,
   );
 }
