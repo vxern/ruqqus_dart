@@ -2,7 +2,7 @@
 abstract class Primary {
   String? id;
   String? fullId;
-  String? link;
+  String? permalink;
   String? fullLink;
   int? createdAt;
 }
