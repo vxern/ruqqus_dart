@@ -50,8 +50,16 @@ class Client with EventEmitter {
   Future login() async {
     final response = await api.post(API.grantUrl, body: refreshData);
 
-    if (response == null) {
-      log.warning('Failed to obtain access token');
+    if (response == null || response.body.trim().isEmpty) {
+      log.error(
+          'Failed to obtain access token as Ruqqus returned an empty response');
+      return;
+    }
+
+    // Received an unexpected HTML response
+    if (response.body.startsWith('<!DOCTYPE html>')) {
+      log.error(
+          'Failed to connect to Ruqqus; check your internet connection, otherwise Ruqqus servers may be offline.');
       return;
     }
 
@@ -65,7 +73,7 @@ class Client with EventEmitter {
       emit('ready');
       log.success('The bot is ready to interact with the Ruqqus API');
     } else {
-      log.success('Refreshed bot access token');
+      log.debug('Refreshed bot access token');
     }
 
     Future.delayed(Duration(minutes: 59, seconds: 55), () {
