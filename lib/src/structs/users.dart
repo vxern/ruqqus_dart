@@ -27,19 +27,14 @@ class User extends Primary {
     // Primary data
     user.id = data['id'];
     user.fullId = data['fullname'];
-    user.link = data['permalink'];
-    user.fullLink = '${API.host}${user.link}';
+    user.permalink = data['permalink'];
+    user.fullLink = '${API.host}${user.permalink}';
     user.createdAt = data['created_utc'];
 
     // User-specific data
     user.username = data['username'];
-    if (data['is_deleted'] == '1') {
-      user.flags =
-          UserFlags(false, false, true, false, 'This user has been deleted');
-      return user;
-    }
     if (data['is_banned'] == '1') {
-      user.flags = UserFlags(true, false, false, false, data['ban_reason']);
+      user.flags = UserFlags(true, false, false, data['ban_reason']);
       return user;
     }
     if (data.containsKey('title')) {
@@ -58,7 +53,8 @@ class User extends Primary {
     user.bannerUrl = data['banner_url'].startsWith('/assets')
         ? '$API.website_link${data['banner_url']}'
         : data['banner_url'];
-    user.badges = data['badges'].map(
+    // TODO: Remove null check when the API gets updated
+    user.badges = data['badges']?.map(
       (badgeRaw) => Badge(
         badgeRaw['name'],
         badgeRaw['text'],
@@ -70,9 +66,8 @@ class User extends Primary {
     user.flags = UserFlags(
       false, // Banned user has already been handled before
       data['is_private'] == '1',
-      false, // Deleted user has already been handled before
       data['is_premium'] == '1',
-      'User is not banned',
+      null,
     );
 
     return user;
@@ -87,6 +82,51 @@ class User extends Primary {
     }
 
     final Map<String, dynamic> data = jsonDecode(response.body);
+
+    // Primary data
+    id = data['id'];
+    fullId = data['fullname'];
+    permalink = data['permalink'];
+    fullLink = '${API.host}${permalink}';
+    createdAt = data['created_utc'];
+
+    // User-specific data
+    username = data['username'];
+    if (data['is_banned'] == '1') {
+      flags = UserFlags(true, false, false, data['ban_reason']);
+      return;
+    }
+    if (data.containsKey('title')) {
+      title = Title.from(data['title']);
+    }
+    bio = Body(data['bio'], data['bio_html']);
+    stats = UserStats(
+      data['post_count'],
+      data['post_rep'],
+      data['comment_count'],
+      data['comment_rep'],
+    );
+    avatarUrl = data['profile_url'].startsWith('/assets')
+        ? '$API.website_link${data['profile_url']}'
+        : data['profile_url'];
+    bannerUrl = data['banner_url'].startsWith('/assets')
+        ? '$API.website_link${data['banner_url']}'
+        : data['banner_url'];
+    badges = data['badges']?.map(
+      (badgeRaw) => Badge(
+        badgeRaw['name'],
+        badgeRaw['text'],
+        badgeRaw['url'],
+        badgeRaw['icon_url'],
+        badgeRaw['created_utc'],
+      ),
+    );
+    flags = UserFlags(
+      false, // Banned user has already been handled before
+      data['is_private'] == '1',
+      data['is_premium'] == '1',
+      null,
+    );
   }
 
   /// Gets and returns a list of `Posts` from this `User's` profile
@@ -117,29 +157,29 @@ class User extends Primary {
 
 /// The `User's` title, for example `User123 the Hot` or `User123 the Dumpster Arsonist`
 class Title {
-  final String name;
+  final String text;
   final int id;
   final int kind;
   final String color;
 
   factory Title.from(Map<String, dynamic> data) {
     return Title(
-      data['text'].replace(', ', ''),
+      data['text'].replaceAll(', ', ''),
       data['id'],
       data['kind'],
       data['color'],
     );
   }
 
-  const Title(this.name, this.id, this.kind, this.color);
+  const Title(this.text, this.id, this.kind, this.color);
 }
 
 /// The `User's` stats - how many submissions of each type they have committed and their reputation
 class UserStats {
-  final int postCount;
-  final int postReputation;
-  final int commentCount;
-  final int commentReputation;
+  final int? postCount;
+  final int? postReputation;
+  final int? commentCount;
+  final int? commentReputation;
 
   const UserStats(
     this.postCount,
@@ -153,14 +193,12 @@ class UserStats {
 class UserFlags {
   final bool isBanned;
   final bool isPrivate;
-  final bool isDeleted;
   final bool isPremium;
-  final String banReason;
+  final String? banReason;
 
   const UserFlags(
     this.isBanned,
     this.isPrivate,
-    this.isDeleted,
     this.isPremium,
     this.banReason,
   );
