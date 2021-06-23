@@ -111,14 +111,14 @@ class API {
     );
 
     if (response == null) {
-      log.error('Failed to submit post in guild $targetGuild');
+      log.error("Failed to submit post in guild '$targetGuild'");
       return null;
     }
 
     if (response.body.contains('<title>Redirecting...</title>')) {
       log.error('An identical post already exists:'
           '\nTitle: ${wrapString(title)}'
-          '\nBody: ${wrapString(body, 50)}');
+          '\nBody: ${wrapString(body, 80)}');
       return null;
     }
 
@@ -177,7 +177,7 @@ class API {
     );
 
     if (response == null) {
-      log.error('Failed to edit submission');
+      log.error("Failed to edit submission '$id'");
       return null;
     }
 
@@ -205,14 +205,14 @@ class API {
     }
 
     if (response.body.isEmpty) {
-      log.success('Deleted submission');
+      log.success("Deleted submission '$id'");
       return;
     }
 
     final Map<String, dynamic> responseBody = jsonDecode(response.body);
 
     if (responseBody.containsKey('error')) {
-      log.error(responseBody['error']);
+      log.error('Failed to delete submission: ' + responseBody['error']);
       return;
     }
   }
