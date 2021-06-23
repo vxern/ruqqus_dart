@@ -1,5 +1,5 @@
 name: ruqqus_dart
-version: 3.0.0
+version: 3.1.0
 description: Complete wrapper for the Ruqqus API written in Dart
 author: Dorian Oszczęda <vxern@wordcollector.co.uk>
 homepage: https://github.com/vxern/ruqqus_dart
