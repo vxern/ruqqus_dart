@@ -8,3 +8,8 @@
 
 - Renamed [link] to [permalink] in the `Primary` data structure as it is named in the data objects sent by Ruqqus
 - Updated Guild, Post and Comment structs
+
+# 3.1.1
+
+- Created example file
+- Updated documentation for all classes
