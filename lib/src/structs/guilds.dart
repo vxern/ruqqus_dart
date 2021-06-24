@@ -7,17 +7,34 @@ import 'package:ruqqus_dart/src/structs/primary.dart';
 import 'package:ruqqus_dart/src/structs/submissions.dart';
 import 'package:ruqqus_dart/src/structs/users.dart';
 
+/// Data structure comprising information about a guild / board
 class Guild extends Primary {
   final API api;
 
+  /// data['name']
   String? name;
+
+  /// data['description'; 'description_html']
   Body? description;
+
+  /// data['color']
   String? color;
+
+  /// data['profile_url']
   String? iconUrl;
+
+  /// data['banner_url']
   String? bannerUrl;
-  int? subscriberCount; // TODO: Possibly inexistent field
-  List<User>? guildmasters; // TODO: Possibly inexistent field
+
+  /// data['is_banned'; 'is_private'; 'is_restricted'; 'is_siege_protected'; 'over_18';
+  ///      'disallowbots']
   GuildFlags? flags;
+
+  /// data['guildmasters']
+  List<User>? guildmasters; // TODO: Possibly inexistent field
+
+  /// data['subscriber_count']
+  int? subscriberCount; // TODO: Possibly inexistent field
 
   Guild(this.api);
 
@@ -38,7 +55,6 @@ class Guild extends Primary {
       data['description_html'],
     );
     guild.color = data['color'];
-    guild.subscriberCount = data['subscriber_count'];
     // TODO: Remove null check when the API gets updated
     guild.guildmasters = data['guildmasters']?.map(
       (guildmasterRaw) => User(api)..fetchData(guildmasterRaw),
@@ -57,6 +73,7 @@ class Guild extends Primary {
       data['over_18'],
       data['disallowbots'],
     );
+    guild.subscriberCount = data['subscriber_count'];
 
     return guild;
   }
@@ -131,13 +148,25 @@ class Guild extends Primary {
   }
 }
 
+/// Indicators of a guild
 class GuildFlags {
+  /// data['is_banned']
   final bool isBanned;
+
+  /// data['is_private']
   final bool isPrivate;
+
+  /// data['is_restricted']
   final bool isRestricted;
+
+  /// data['is_siege_protected']
   final bool isSiegeProtected;
+
+  /// data['over_18']
   final bool over18;
-  final bool disallowsBots;
+
+  /// data['disallowbots']
+  final bool disallowBots;
 
   GuildFlags(
     this.isBanned,
@@ -145,6 +174,6 @@ class GuildFlags {
     this.isRestricted,
     this.isSiegeProtected,
     this.over18,
-    this.disallowsBots,
+    this.disallowBots,
   );
 }

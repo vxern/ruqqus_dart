@@ -6,17 +6,32 @@ import 'package:ruqqus_dart/src/API.dart';
 import 'package:ruqqus_dart/src/structs/primary.dart';
 import 'package:ruqqus_dart/src/structs/submissions.dart';
 
-/// The `User` data structure, comprising information about a user account
+/// Data structure comprising information about a user account
 class User extends Primary {
   final API api;
 
+  /// data['username']
   String? username;
+
+  /// data['title']
   Title? title;
+
+  /// data['bio'; 'bio_html']
   Body? bio;
+
+  /// data['post_count'; 'post_rep'; 'comment_count'; 'comment_rep']
   UserStats? stats;
+
+  /// data['avatar_url']
   String? avatarUrl;
+
+  /// data['banner_url']
   String? bannerUrl;
+
+  /// data['is_banned'; 'is_private'; 'is_premium'; 'ban_reason']
   UserFlags? flags;
+
+  /// data['badges']
   List<Badge>? badges;
 
   User(this.api);
@@ -155,11 +170,18 @@ class User extends Primary {
   }
 }
 
-/// The `User's` title, for example `User123 the Hot` or `User123 the Dumpster Arsonist`
+/// Data structure for a title that follows a user's name
 class Title {
+  /// The text content of a title
   final String text;
+
+  /// ID of the title
   final int id;
+
+  /// The rarity / class of a title
   final int kind;
+
+  /// [color] - Colour of the title
   final String color;
 
   factory Title.from(Map<String, dynamic> data) {
@@ -174,11 +196,18 @@ class Title {
   const Title(this.text, this.id, this.kind, this.color);
 }
 
-/// The `User's` stats - how many submissions of each type they have committed and their reputation
+/// Statistics of a user account
 class UserStats {
+  /// Total number of posts made by the user
   final int? postCount;
+
+  /// Total post score
   final int? postReputation;
+
+  /// Total number of comments made by the user
   final int? commentCount;
+
+  /// Total comment score
   final int? commentReputation;
 
   const UserStats(
@@ -189,11 +218,18 @@ class UserStats {
   );
 }
 
-/// The `User's` flags - used for requesting data
+/// Indicators of a user account
 class UserFlags {
+  /// Whether the user is banned
   final bool isBanned;
+
+  /// Whether user's submissions are private
   final bool isPrivate;
+
+  /// Whether the user has a premium account
   final bool isPremium;
+
+  /// If the user is banned, what the reason is
   final String? banReason;
 
   const UserFlags(
@@ -204,13 +240,21 @@ class UserFlags {
   );
 }
 
-/// The `User's` badge/s, awarded for certain tasks, such as signing up
-/// during alpha or contributing to the Ruqqus source code
+/// Data structure for a badge bearable by a user
 class Badge {
+  /// The 'name' of the badge, or the title
   final String name;
+
+  /// The description of the badge that gives additional information
   final String description;
+
+  /// Additional URL that may point to the origin of the user's award
   final String url;
+
+  /// URL pointing to the badge's image
   final String iconUrl;
+
+  /// Unix timestamp of the badge's creation date
   final int createdAt;
 
   const Badge(
