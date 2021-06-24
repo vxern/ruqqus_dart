@@ -10,7 +10,7 @@ import 'package:ruqqus_dart/src/structs/primary.dart';
 import 'package:ruqqus_dart/src/structs/settings.dart';
 import 'package:ruqqus_dart/src/structs/submissions.dart';
 
-/// Wraps Ruqqus API routes and acts as an interface for interacting with them
+/// Provides an interface for calling Ruqqus API endpoints
 class API {
   static const String host = 'https://ruqqus.com';
   static const String apiVersion = '/api/v1';
@@ -18,19 +18,21 @@ class API {
 
   final Sprint log = Sprint('API Caller');
 
+  /// Instance of client for accessing [accessToken]
   final Client client;
 
+  /// Allows making HTTP requests to the Ruqqus API
   final HttpClient httpClient = HttpClient();
 
-  late final Map<String, String> refreshData;
-
+  /// A string that identifies the application interacting with the API
   final String userAgent;
 
-  API(this.client, this.refreshData, this.userAgent, {bool quietMode = false}) {
+  /// Creates an instance of the API interface
+  API(this.client, this.userAgent, {bool quietMode = false}) {
     log.quietMode = quietMode;
   }
 
-  /// Submits a HTTP `GET` request with the given headers
+  /// Submits a HTTP `GET` request with the given [headers]
   Future<http.Response?> get(
     String route, {
     Map<String, dynamic> headers = const {},
@@ -60,7 +62,7 @@ class API {
     }
   }
 
-  /// Submits a HTTP `POST` request with the given headers and body
+  /// Submits a HTTP `POST` request with the given [headers] and [body]
   Future<http.Response?> post(
     String route, {
     Map<String, dynamic> headers = const {},
@@ -93,7 +95,8 @@ class API {
     }
   }
 
-  /// Submits a `Post` to a `Guild` with the specified title and body, and an optional url
+  /// Submits a `Post` to a `Guild` with the specified [title] and [body],
+  /// and an optional [url] hyperlink
   Future<Post?> submitPost({
     required String targetGuild,
     required String title,
@@ -129,7 +132,8 @@ class API {
     return Post.from(this, responseBody);
   }
 
-  /// Submits a reply under a parent with the specified body
+  /// Submits a `Comment` as a reply to the given submission
+  /// with the specified [body]
   Future<Comment?> submitReply({
     required SubmissionType parentSubmissionType,
     required String id,
@@ -219,8 +223,7 @@ class API {
 
   /// Updates the account's profile settings
   ///
-  /// Returns `true` if the profile settings had been updated,
-  /// and `false` otherwise
+  /// Returns `true` if the profile settings had been updated, and `false` otherwise
   Future<bool> updateProfileSettings({
     required ProfileSettings profileSettings,
   }) async {
@@ -306,8 +309,8 @@ class API {
     final response = await post(
       '/settings/security',
       headers: {
-        '2fa_token': enable2fa.twoFactorToken,
         '2fa_secret': enable2fa.twoFactorSecret,
+        '2fa_token': enable2fa.twoFactorToken,
         'password': enable2fa.password,
       },
     );

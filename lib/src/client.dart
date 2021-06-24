@@ -56,7 +56,7 @@ class Client with EventEmitter {
 
     log.quietMode = quietMode;
 
-    api = API(this, refreshData, userAgent, quietMode: quietMode);
+    api = API(this, userAgent, quietMode: quietMode);
   }
 
   /// Ruqqus: "Access tokens expire one hour after they are issued.
