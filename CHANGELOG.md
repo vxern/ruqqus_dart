@@ -13,3 +13,7 @@
 
 - Created example file
 - Updated documentation for all classes
+
+# 3.1.2
+
+- Added `Getting Started` section and the ruqqus_dart logo to README.md
