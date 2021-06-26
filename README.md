@@ -36,7 +36,7 @@ https://ruqqus.com/oauth/authorize?client_id=<Client ID here>&redirect_uri=<Redi
 
 **redirect_uri** - Your application's redirect URI, also visible in the applications tab.
 
-**state** - Your own anti-corss-site-forgery token.
+**state** - Your own anti-cross-site-forgery token.
 
 **scope** - What the application is permitted to do with your account. Available scopes: `identity, create, read, update, delete, vote, guildmaster`
 To grant your application with the permission to do *everything*, just slot in all the available scopes separated by commas.
@@ -69,7 +69,7 @@ final client = Client(
 client.login();
 ```
 
-:sparkles: That's much better. However, we still need to make sure that the client is *ready to listen to us*. We can ensure that it indeed is by creating a listener for the 'ready' event. This functionality is provided by the (event_dart)[https://pub.dev/packages/event_dart] library.
+:sparkles: That's much better. However, we still need to make sure that the client is *ready to listen to us*. We can ensure that it indeed is by creating a listener for the 'ready' event. This functionality is provided by the [event_dart](https://pub.dev/packages/event_dart) library.
 
 ```dart
 client.on('ready', () async {
