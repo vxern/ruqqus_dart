@@ -3,6 +3,7 @@ library ruqqus_dart;
 // Interfaces
 export 'src/API.dart';
 export 'src/client.dart';
+export 'src/utils.dart';
 
 // Data structures
 export 'src/structs/guilds.dart';

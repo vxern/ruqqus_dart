@@ -1,5 +1,4 @@
 import 'package:ruqqus_dart/ruqqus_dart.dart';
-import 'package:ruqqus_dart/src/utils.dart';
 
 void main() async {
   final client = Client(
