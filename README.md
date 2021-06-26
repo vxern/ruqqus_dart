@@ -1,5 +1,11 @@
 <div align="center">
-    <img src="logo.png" width="550" alt="Logo of ruqqus_dart"/>
+    <br/>
+    <section>
+        <img src="https://i.imgur.com/rdL5hx0.png" width="70%" alt="Logo of ruqqus_dart"/>
+    </section>
+    <br/>
+    <br/>
+    <br/>
 </div>
 
 The [ruqqus_dart](https://pub.dev/packages/ruqqus_dart) library can be used to create bots for [Ruqqus](https://ruqqus.com/help/about) - an open-source platform for online communities, free of censorship and moderator abuse by design. You go, Ruqqus! :purple_heart:
@@ -8,7 +14,7 @@ The [ruqqus_dart](https://pub.dev/packages/ruqqus_dart) library can be used to c
 
 ## Table of Contents
 
-- [Getting Started](#Getting Started)
+- [Getting Started](#getting-started)
 
 ## Getting Started
 
