@@ -6,13 +6,13 @@ It is currently the most complete and only API wrapper available for Ruqqus in t
 
 **Feedback is welcomed with open arms** - feel free to contribute by posting an issue, or directly by submitting a pull request.
 
-### Getting started
+## Getting started
 
 To create a simple bot, you will first need to have an *authorised application*, which you can create in the [apps tab](https://ruqqus.com/settings/apps).
 
 In order to make use of your application, you will need to have an account the application can access:
 
-!(Accessing Account)[https://ruqqus.com/assets/images/illustrations/reader.png]
+![Accessing Account](https://ruqqus.com/assets/images/illustrations/reader.png)
 
 To do this, you will need to log into your desired account, and then prompt the user for authorization.
 
@@ -20,6 +20,7 @@ Copy this link, and modify it with your desired information:
 
 ```
 https://ruqqus.com/oauth/authorize?client_id=<Client ID here>&redirect_uri=<Redirect URI here>&state=<Your anti-CSRF token>&scope=<Permission scope>&permanent=<true if requesting indefinite access>
+```
 
 **client_id** - Your application's identifier, visible in the applications tab in your settings.
 **redirect_uri** - Your application's redirect URI, also visible in the applications tab.
