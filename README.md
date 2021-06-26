@@ -1,10 +1,16 @@
-![Library Logo](logo.png)
+<div align="center">
+    <img src="logo.png" width="550" alt="Logo of ruqqus_dart"/>
+</div>
 
 The [ruqqus_dart](https://pub.dev/packages/ruqqus_dart) library can be used to create bots for [Ruqqus](https://ruqqus.com/help/about) - an open-source platform for online communities, free of censorship and moderator abuse by design. You go, Ruqqus! :purple_heart:
 
 **Feedback is welcomed with open arms** - feel free to contribute by posting an issue, or directly by submitting a pull request.
 
-## Getting started
+## Table of Contents
+
+- [Getting Started](#Getting Started)
+
+## Getting Started
 
 To create a simple bot, you will first need to have an *authorised application*, which you can create in the [apps tab](https://ruqqus.com/settings/apps).
 
