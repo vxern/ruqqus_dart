@@ -1,4 +1,4 @@
-# The simplest way to interact with the Ruqqus API
+![Library Logo](logo.png)
 
 The [ruqqus_dart](https://pub.dev/packages/ruqqus_dart) library can be used to create bots for [Ruqqus](https://ruqqus.com/help/about) - an open-source platform for online communities, free of censorship and moderator abuse by design. You go, Ruqqus! :purple_heart:
 
