@@ -1,19 +1,19 @@
-# 3.0.0
+## 3.1.2
 
-- Implementation of null-safety
-- Rewrite of the codebase with tons of code, formatting and practice improvements
-- Added CHANGELOG.md
+  - Added `Getting Started` section and the ruqqus_dart logo to README.md.
 
-# 3.1.0
+## 3.1.1
 
-- Renamed [link] to [permalink] in the `Primary` data structure as it is named in the data objects sent by Ruqqus
-- Updated Guild, Post and Comment structs
+  - Created example file.
+  - Updated documentation for all classes.
 
-# 3.1.1
+## 3.1.0
 
-- Created example file
-- Updated documentation for all classes
+  - Renamed [link] to [permalink] in the `Primary` data structure as it is named in the data objects sent by Ruqqus.
+  - Updated `Guild`, `Post` and `Comment` structs.
 
-# 3.1.2
+## 3.0.0
 
-- Added `Getting Started` section and the ruqqus_dart logo to README.md
+  - Implementation of null-safety.
+  - Rewrite of the codebase to improve its overall quality.
+  - Added CHANGELOG.md.
