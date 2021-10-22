@@ -1,15 +1,15 @@
+publish_to: https://pub.dev
+
 name: ruqqus_dart
 version: 3.1.2
+
 description: >-
-  Fully-documented, powerful and extensive interface to interact 
-  with the Ruqqus API written in Dart
-author: Dorian Oszczęda <vxern@wordcollector.co.uk>
+  Fully-documented, powerful and extensive interface for the Ruqqus API
+  written in Dart.
+
 homepage: https://github.com/vxern/ruqqus_dart
 repository: https://github.com/vxern/ruqqus_dart
-#documentation:
 issue_tracker: https://github.com/vxern/ruqqus_dart/issues
-
-publish_to: https://pub.dev
 
 environment:
   sdk: '>=2.13.3 <3.0.0'
