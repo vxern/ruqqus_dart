@@ -8,9 +8,12 @@
     <br/>
 </div>
 
-The [ruqqus_dart](https://pub.dev/packages/ruqqus_dart) library can be used to create bots for [Ruqqus](https://ruqqus.com/help/about) - an open-source platform for online communities, free of censorship and moderator abuse by design. You go, Ruqqus! :purple_heart:
+The [ruqqus_dart](https://pub.dev/packages/ruqqus_dart) library could have been used to create bots for [Ruqqus](https://ruqqus.com) - an open-source platform for online communities, free of censorship and moderator abuse by design. You ~~go~~ went, Ruqqus! :purple_heart:
 
-**Feedback is welcomed with open arms** - feel free to contribute by posting an issue, or directly by submitting a pull request.
+Ruqqus has since been shut down, and thus this package has no real use anymore. 😿
+It is here to stay, however, as a learning source and as a memory because [ruqqus_dart](https://pub.dev/packages/ruqqus_dart) has been only my second Dart package and project. 🏆
+
+**Feedback was welcome with open arms** - you would have been free to contribute through posting an issue, or directly by submitting a pull request.
 
 ## Table of Contents
 
@@ -18,13 +21,13 @@ The [ruqqus_dart](https://pub.dev/packages/ruqqus_dart) library can be used to c
 
 ## Getting Started
 
-To create a simple bot, you will first need to have an *authorised application*, which you can create in the [apps tab](https://ruqqus.com/settings/apps).
+To create a simple bot, you would first have needed to have an *authorised application*, which you could have created in the [apps tab](https://ruqqus.com/settings/apps).
 
-In order to make use of your application, you will need to have an account the application can access:
+In order to have made use of your application, you would have needed to have an account the application can access:
 
 ![Accessing Account](https://ruqqus.com/assets/images/illustrations/reader.png)
 
-To do this, you will need to log into your desired account, and then prompt the user for authorization.
+To do this, you would have needed to log into your desired account, and then prompted the user for authorization.
 
 Copy this link, and modify it with your desired information:
 
@@ -43,15 +46,15 @@ To grant your application with the permission to do *everything*, just slot in a
 
 **permanent** - Set to `true` if you want the application to have indefinite access to your account.
 
-Once you have pressed '**Authorize**', you will have received a single-use authorization code, which you will be able to exchange for an *access token* - a token which will allow your application to log into and start interacting with Ruqqus using your account.
+Once you had pressed '**Authorize**', you would have received a single-use authorization code, which you would have been able to exchange for an *access token* - a token which would allow your application to log into and start interacting with Ruqqus using your account.
 
-Now that we're ready to jump into the code, we must first import the library into our code:
+Then that we were ready to jump into the code, we must have first imported the `ruqqus_dart` package:
 
 ```dart
 import 'package:ruqqus_dart/ruqqus_dart.dart'
 ```
 
-:floppy_disk: Now, let's create a `Client` object using all the necessary data: (This should be in your `main` function, unless you're already an expert and don't need no guidance :sunglasses:)
+:floppy_disk: Now, we were let create a `Client` object using all the necessary data: (This should have been in your `main` function, unless you were already an expert and ain't needed no guidance :sunglasses:)
 
 ```dart
 final client = Client(
@@ -63,13 +66,13 @@ final client = Client(
 );
 ```
 
-:muscle: Although we now have a powerful client that has knows the arcane arts of summoning posts and replying to comments, it is still quite unable to accomplish anything, as we have not made it authenticate itself:
+:muscle: Although we then had a powerful client that knew the arcane arts of summoning posts and replying to comments, it was still quite unable to accomplish anything in particular, as we have not made it authenticate itself:
 
 ```dart
 client.login();
 ```
 
-:sparkles: That's much better. However, we still need to make sure that the client is *ready to listen to us*. We can ensure that it indeed is by creating a listener for the 'ready' event. This functionality is provided by the [event_dart](https://pub.dev/packages/event_dart) library.
+:sparkles: That was much better. However, we still needed to make sure that the client is *ready to listen to us*. We could ensure that it indeed was by creating a listener for the 'ready' event. This functionality was provided by the [event_dart](https://pub.dev/packages/event_dart) package.
 
 ```dart
 client.on('ready', () async {
@@ -77,9 +80,9 @@ client.on('ready', () async {
 }
 ```
 
-:star: Congratulations - You have made a bot that gets authenticated, but then proceeds to do absolutely nothing. Let's put the bot to good use by making our first post.
+:star: Congratulations - You had made a bot that gets authenticated, but then proceeds to do absolutely nothing. We were let put the bot to good use by making our first post.
 
-:grey_exclamation: To prevent triggering the Ruqqus anti-spam protection, the utility `generateRandomString()` function is used to generate a random string of characters.
+:grey_exclamation: To prevent triggering the Ruqqus anti-spam protection, the utility `generateRandomString()` function was used to generate a random string of characters.
 
 ```dart
 final post = await client.api.submitPost(
@@ -89,4 +92,4 @@ final post = await client.api.submitPost(
 );
 ```
 
-:tada: You have now made your first post using the `ruqqus_dart` library, and are officially a novice bot-maker. :grin:
+:tada: You had now made your first post using the `ruqqus_dart` package, and were officially a novice bot-maker. :grin:
